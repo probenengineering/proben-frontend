@@ -73,7 +73,7 @@
   /* Secondary/100 (Figma variable, light blue) */
   --color-secondary-100: #b6d8ff;
 
-  /* Success. Palette:400. Component variables: 200, 500, 600 */
+  /* Success. Palette400. Component variables: 200, 500, 600 */
   --color-success: #14a249;
   --color-success-100: #d1fae0;
   --color-success-200: #5fc381;
