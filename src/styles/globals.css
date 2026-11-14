@@ -1,0 +1,324 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* -------------------------------------------------------------------------- */
+/* Design tokens from the Figma style guide (Proben, page "style guide").     */
+/* Tailwind's default colours are switched off: only these colours exist.     */
+/* -------------------------------------------------------------------------- */
+@theme {
+  --color-*: initial;
+
+  /* Shades */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Proben Green (primary). Base = green-500 */
+  --color-green-50: #f5faf0;
+  --color-green-100: #e9f4dd;
+  --color-green-200: #d8ecc2;
+  --color-green-300: #c2e2a0;
+  --color-green-400: #a3d370;
+  --color-green-500: #84c441;
+  --color-green-600: #74ac39;
+  --color-green-700: #639331;
+  --color-green-800: #4f7627;
+  --color-green-900: #3b581d;
+  --color-green-link: #3d6838; /* Figma "Schemes/Surface Tint", used by the Sign up link */
+
+  /* Proben Navy (secondary). Base = navy-500 */
+  --color-navy-50: #f1efff;
+  --color-navy-100: #c0bdfa;
+  --color-navy-200: #9390cb;
+  --color-navy-300: #68669e;
+  --color-navy-400: #3e3f73;
+  --color-navy-500: #161c4a;
+  --color-navy-600: #121841;
+  --color-navy-700: #101438;
+  --color-navy-800: #0d102c;
+  --color-navy-900: #090c21;
+
+  /* Neutral: Black scale (Black/10 lightest -> Black/100 = black) */
+  --color-black-10: #e6e6e6;
+  --color-black-20: #cccccc;
+  --color-black-30: #b3b3b3;
+  --color-black-40: #999999;
+  --color-black-50: #808080;
+  --color-black-60: #666666;
+  --color-black-70: #4d4d4d;
+  --color-black-80: #333333;
+  --color-black-90: #1a1a1a;
+
+  /* Neutral: White scale */
+  --color-white-50: #fafafa;
+  --color-white-200: #f7f7f7;
+  --color-white-300: #f3f4f4;
+  --color-white-400: #eeeeef;
+  --color-white-500: #e7e8ea;
+  --color-white-600: #dfe1e4;
+  --color-white-700: #d5d8dc;
+
+  /* Grey scale (Figma variables used by components; no 50 or 800 defined) */
+  --color-grey-100: #f0f2f5;
+  --color-grey-200: #e4e7ec;
+  --color-grey-300: #d0d5dd;
+  --color-grey-400: #98a2b3;
+  --color-grey-500: #667185;
+  --color-grey-600: #475367;
+  --color-grey-700: #344054;
+  --color-grey-900: #101928;
+
+  /* Secondary/100 (Figma variable, light blue) */
+  --color-secondary-100: #b6d8ff;
+
+  /* Success. Palette:400. Component variables: 200, 500, 600 */
+  --color-success: #14a249;
+  --color-success-100: #d1fae0;
+  --color-success-200: #5fc381;
+  --color-success-400: #0d6d31;
+  --color-success-500: #099137;
+  --color-success-600: #04802e;
+  --color-success-toast: #255023; /* success toast background (Figma "schemes/on-primary-fixed-variant") */
+
+  /* App screens (chat), not in the style guide but agreed as tokens */
+  --color-surface: #f3f3f3; /* grey page background behind the app card */
+  --color-divider: #e5e5e5; /* chat list right border */
+  --color-avatar-peach: #ffe7cc; /* avatar fallback background */
+  --color-avatar-pink: #e4baca; /* avatar fallback background */
+  --color-avatar-orange: #ffece5; /* initials avatar background (Figma "Primary/50") */
+  --color-unread: #38656a; /* unread count badge (Figma "schemes/tertiary") */
+  --color-line: #d9d9d9; /* message box border, profile photo fallback */
+  --color-hairline: #f1f1f1; /* chat filter menu border */
+  --color-icon: #292d32; /* colour inside Figma's vuesax icons; switch ON track */
+
+  /* Warning (Amber) */
+  --color-warning: #f59e0b;
+  --color-warning-50: #fef3c7;
+  --color-warning-700: #f3700c;
+
+  /* Dashboard, not in the style guide but agreed as tokens */
+  --color-pending-50: #fff3e5; /* orange status pill background ("Not clocked in", "3 available") */
+  --color-pending: #e17701; /* orange status pill text and dot */
+  --color-label: #737e8c; /* muted label, e.g. "Clock-in time" */
+  --color-progress-50: #eaf9fa; /* "In progress" pill background (text uses unread) */
+
+  /* Tasks calendar, from Figma's calendar component (Tailwind-style gray/blue/... variables) */
+  --color-calendar-label: #71717a; /* day names, hour labels ("gray/500") */
+  --color-calendar-today: #eff6ff; /* today's column ("blue/50") */
+  --color-calendar-line: #e0e0e0; /* hour and day grid lines */
+  --color-event-blue: #0ea5e9; /* bar; background is this at 10% ("lightBlue/500") */
+  --color-event-blue-text: #0369a1; /* "lightBlue/700" */
+  --color-event-green: #10b981; /* "emerald/500" */
+  --color-event-green-text: #047857; /* "emerald/700" */
+  --color-event-purple: #8b5cf6; /* "violet/500" */
+  --color-event-purple-text: #6d28d9; /* "violet/700" */
+  --color-event-amber-text: #b45309; /* "amber/700"; the amber bar is warning #f59e0b */
+
+  /* Error (Red). Palette: base, 50, 700. Component variables: 200, 500 */
+  --color-error: #ef4444;
+  --color-error-50: #fee2e2;
+  --color-error-200: #e26e6a;
+  --color-error-500: #cb1a14;
+  --color-error-700: #b91c1c;
+}
+
+/* Fonts are loaded in src/app/layout.tsx with next/font */
+@theme inline {
+  --font-sans: var(--font-family-inter-tight);
+  --font-heading: var(--font-family-inter-tight);
+  --font-inter: var(--font-family-inter);
+  --font-inter-tight: var(--font-family-inter-tight);
+
+  /* shadcn colour slots, pointed at the Figma tokens above */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Figma has no dark mode, so only light values are defined. */
+:root {
+  --background: var(--color-white);
+  --foreground: var(--color-grey-900);
+  --card: var(--color-white);
+  --card-foreground: var(--color-grey-900);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-grey-900);
+  --primary: var(--color-black); /* Figma "Button / primary" is black */
+  --primary-foreground: var(--color-white);
+  --secondary: var(--color-navy-500);
+  --secondary-foreground: var(--color-white);
+  --muted: var(--color-grey-100);
+  --muted-foreground: var(--color-grey-500);
+  --accent: var(--color-green-50);
+  --accent-foreground: var(--color-grey-900);
+  --destructive: var(--color-error-500);
+  --border: var(--color-grey-300);
+  --input: var(--color-grey-300);
+  --ring: var(--color-green-500);
+  --chart-1: var(--color-green-500);
+  --chart-2: var(--color-navy-500);
+  --chart-3: var(--color-green-300);
+  --chart-4: var(--color-navy-300);
+  --chart-5: var(--color-warning);
+  --radius: 0.625rem; /* shadcn default; Figma defines no radius tokens yet */
+  --sidebar: var(--color-white);
+  --sidebar-foreground: var(--color-grey-900);
+  --sidebar-primary: var(--color-green-500);
+  --sidebar-primary-foreground: var(--color-white);
+  --sidebar-accent: var(--color-green-50);
+  --sidebar-accent-foreground: var(--color-grey-900);
+  --sidebar-border: var(--color-grey-200);
+  --sidebar-ring: var(--color-green-500);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Text styles from the Figma typography sheet.                               */
+/* Each sets family, size, line height and letter spacing. Add the weight     */
+/* separately: font-normal, font-medium, font-semibold or font-bold.          */
+/* Named type-* (not text-*) so they never clash with text colours in cn().   */
+/* -------------------------------------------------------------------------- */
+@utility type-display-lg {
+  font-family: var(--font-family-inter-tight);
+  font-size: 3.5625rem; /* 57px */
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+@utility type-display-md {
+  font-family: var(--font-family-inter-tight);
+  font-size: 2.8125rem; /* 45px */
+  line-height: 3.25rem; /* 52px */
+  letter-spacing: -0.25px;
+}
+@utility type-display-sm {
+  font-family: var(--font-family-inter-tight);
+  font-size: 2.25rem; /* 36px */
+  line-height: 2.75rem; /* 44px */
+  letter-spacing: 0;
+}
+@utility type-heading-lg {
+  font-family: var(--font-family-inter-tight);
+  font-size: 2rem; /* 32px */
+  line-height: 1.2;
+  letter-spacing: -0.25px;
+}
+@utility type-heading-md {
+  font-family: var(--font-family-inter-tight);
+  font-size: 1.75rem; /* 28px */
+  line-height: 2.25rem; /* 36px */
+  letter-spacing: 0;
+}
+@utility type-heading-sm {
+  font-family: var(--font-family-inter-tight);
+  font-size: 1.5rem; /* 24px */
+  line-height: 2rem; /* 32px */
+  letter-spacing: 0;
+}
+@utility type-title-lg {
+  font-family: var(--font-family-inter-tight);
+  font-size: 1.375rem; /* 22px */
+  line-height: 1.75rem; /* 28px */
+  letter-spacing: 0;
+}
+@utility type-title-md {
+  font-family: var(--font-family-inter-tight);
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem; /* 24px */
+  letter-spacing: 0;
+}
+@utility type-title-sm {
+  font-family: var(--font-family-inter-tight);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem; /* 20px */
+  letter-spacing: 0;
+}
+@utility type-paragraph-lg {
+  font-family: var(--font-family-inter-tight);
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+@utility type-paragraph-md {
+  font-family: var(--font-family-inter-tight);
+  font-size: 1rem; /* 16px */
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+@utility type-paragraph-sm {
+  font-family: var(--font-family-inter);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+@utility type-paragraph-xs {
+  font-family: var(--font-family-inter);
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+@utility type-caption-lg {
+  font-family: var(--font-family-inter);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.2;
+  letter-spacing: 0.12em; /* 12% */
+}
+@utility type-caption-sm {
+  font-family: var(--font-family-inter);
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.2;
+  letter-spacing: 0.12em; /* 12% */
+}
+@utility type-caption-xs {
+  font-family: var(--font-family-inter);
+  font-size: 0.625rem; /* 10px */
+  line-height: 1.2;
+  letter-spacing: 0.16em; /* 16% */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

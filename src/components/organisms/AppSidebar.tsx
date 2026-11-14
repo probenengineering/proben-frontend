@@ -1,0 +1,79 @@
+import { Suspense } from "react";
+
+import { Icon, Logo } from "@/components/atoms";
+import { SidebarMenuItem, UserCard } from "@/components/molecules";
+import { cn } from "@/lib/utils";
+
+import { CurrentUserCard } from "./CurrentUserCard";
+
+// Figma component "Sidebar": 272px with labels, or 82px icons-only when collapsed (chat open).
+// No item is highlighted, matching the chat frames. Items aren't links yet.
+export interface AppSidebarProps {
+  collapsed?: boolean;
+  /** Highlights a main item with the peach active style (Figma: Home on the Tasks screens). */
+  activeItem?: "home";
+}
+
+export function AppSidebar({ collapsed, activeItem }: AppSidebarProps) {
+  const item = { collapsed };
+  return (
+    <aside
+      className={cn(
+        "flex h-full shrink-0 flex-col justify-between overflow-clip rounded-[12px] py-6",
+        collapsed ? "w-20.5" : "w-68",
+      )}
+    >
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center px-6 py-2">
+          <Logo variant={collapsed ? "compact" : "full"} />
+        </div>
+        <nav className="flex flex-col gap-3 px-2">
+          <div className="flex flex-col gap-1">
+            <SidebarMenuItem
+              icon="home"
+              label="Home"
+              href="/"
+              active={activeItem === "home"}
+              activeTone="peach"
+              {...item}
+            />
+            <SidebarMenuItem
+              icon="messages"
+              label="Messages"
+              badge="10"
+              href="/messages"
+              {...item}
+            />
+            <SidebarMenuItem
+              icon="grid"
+              label="Staffer"
+              trailing={<Icon name="chevron-down" />}
+              {...item}
+            />
+            <SidebarMenuItem icon="notification" label="Notifications" {...item} />
+            <SidebarMenuItem icon="user" label="Profile" {...item} />
+          </div>
+          <div className="h-px w-full bg-grey-100" />
+        </nav>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-3 px-2 pb-3">
+          {!collapsed && (
+            <p className="pr-4 pl-3 type-paragraph-sm font-medium text-grey-400">Settings</p>
+          )}
+          <div className="flex flex-col gap-1">
+            <SidebarMenuItem icon="unlock" label="Help & privacy" {...item} />
+            <SidebarMenuItem icon="setting-2" label="Settings" {...item} />
+          </div>
+        </div>
+        <div className="py-2">
+          {/* The signed-in person streams in; an empty card holds the space meanwhile. */}
+          <Suspense fallback={<UserCard name="" signedIn={false} compact={collapsed} />}>
+            <CurrentUserCard compact={collapsed} />
+          </Suspense>
+        </div>
+      </div>
+    </aside>
+  );
+}
