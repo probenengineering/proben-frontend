@@ -103,6 +103,8 @@
   --color-pending: #e17701; /* orange status pill text and dot */
   --color-label: #737e8c; /* muted label, e.g. "Clock-in time" */
   --color-progress-50: #eaf9fa; /* "In progress" pill background (text uses unread) */
+  --color-clock-arc-start: #9afb37; /* "My time" ring gradient, light end (Figma Ellipse 7) */
+  --color-clock-arc-end: #6acd04; /* "My time" ring gradient, dark end */
 
   /* Tasks calendar, from Figma's calendar component (Tailwind-style gray/blue/... variables) */
   --color-calendar-label: #71717a; /* day names, hour labels ("gray/500") */

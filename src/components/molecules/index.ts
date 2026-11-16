@@ -51,7 +51,13 @@ export { ScheduleItem, type ScheduleItemProps } from "./ScheduleItem";
 export { OpenShiftItem, type OpenShiftItemProps } from "./OpenShiftItem";
 export { MessagesDock, type MessagesDockProps } from "./MessagesDock";
 export { PageHeading, type PageHeadingProps } from "./PageHeading";
-export { ViewToggle, type ViewToggleProps } from "./ViewToggle";
+export {
+  HOME_VIEWS,
+  TASK_VIEWS,
+  ViewToggle,
+  type ViewOption,
+  type ViewToggleProps,
+} from "./ViewToggle";
 export { MonthNav, type MonthNavProps } from "./MonthNav";
 export {
   CalendarDayHeader,
@@ -61,9 +67,17 @@ export {
 } from "./CalendarDayHeader";
 export { CalendarEvent, type CalendarEventColor, type CalendarEventProps } from "./CalendarEvent";
 export { TaskRow, type TaskRowProps, type TaskStatus } from "./TaskRow";
+export { TaskTableHeader, TASK_TABLE_COLUMNS, type TaskTableHeaderProps } from "./TaskTableHeader";
 export {
   CalendarDayColumn,
   type CalendarDayColumnProps,
   type PlacedEvent,
 } from "./CalendarDayColumn";
 export { CopyButton, type CopyButtonProps } from "./CopyButton";
+export { EmptyPanel, type EmptyPanelProps } from "./EmptyPanel";
+export { TaskStatusFilter, type TaskStatusFilterProps } from "./TaskStatusFilter";
+export { HOME_TABLE_COLUMNS, HomeTableHeader, type HomeTableHeaderProps } from "./HomeTableHeader";
+export { HomeRow, type HomeRowProps } from "./HomeRow";
+export { HomeStat, type HomeStatProps } from "./HomeStat";
+export { EmptyNotice, type EmptyNoticeProps } from "./EmptyNotice";
+export { NotificationItem, type NotificationItemProps } from "./NotificationItem";

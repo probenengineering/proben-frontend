@@ -1,4 +1,5 @@
-import type { CalendarDay, CalendarEventData, TaskGroupProps } from "@/components/organisms";
+import type { CalendarDay, CalendarEventData } from "@/components/organisms";
+import type { TaskRecord } from "@/lib/tasks";
 
 // Sample My Tasks data copied from the Figma frames, until real data is wired up.
 // Event times show Figma's labels as written (e.g. the 9:30 green event also reads "9:00 AM").
@@ -109,26 +110,28 @@ export const CALENDAR_EVENTS: CalendarEventData[] = [
   { day: 1, start: 16, duration: 1, lane: 1, lanes: 2, ...webinar },
 ];
 
-const dayCare = { home: "Becharbum Group Home", role: "Day Care", time: "08 : 00 AM" };
+const vitals = {
+  name: "Check Resident's Vital Signs",
+  description:
+    "Measure and record the resident's vital signs, including blood pressure and temperature.",
+};
 
-export const TASK_GROUPS: TaskGroupProps[] = [
-  {
-    title: "Today",
-    date: "Tue, Oct 28, 2026",
-    available: 3,
-    tasks: [
-      { ...dayCare, status: "pending" },
-      { ...dayCare, status: "in-progress" },
-      { ...dayCare, status: "pending" },
-    ],
-  },
-  {
-    title: "Tomorrow",
-    date: "Wed, Oct 29, 2026",
-    available: 2,
-    tasks: [
-      { ...dayCare, status: "pending" },
-      { ...dayCare, status: "pending" },
-    ],
-  },
+/** The day the sample list treats as "Today" (Figma: Tue, Oct 28, 2026). */
+export const SAMPLE_TODAY = "2026-10-28";
+
+// Figma 51:10883 (today / tomorrow) plus overdue (51:11043) and due-later examples.
+export const TASK_RECORDS: TaskRecord[] = [
+  { id: "t1", ...vitals, due: "2026-10-28T08:00", status: "in-progress" },
+  { id: "t2", ...vitals, due: "2026-10-28T08:00", status: "completed" },
+  { id: "t3", ...vitals, due: "2026-10-28T08:00", status: "pending" },
+  { id: "t4", ...vitals, due: "2026-10-29T08:00", status: "pending" },
+  { id: "t5", ...vitals, due: "2026-10-29T08:00", status: "pending" },
+  { id: "t6", ...vitals, due: "2026-10-27T08:00", status: "pending" },
+  { id: "t7", ...vitals, due: "2026-10-26T08:00", status: "pending" },
+  { id: "t8", ...vitals, due: "2026-10-24T08:00", status: "in-progress" },
+  { id: "t9", ...vitals, due: "2026-10-23T08:00", status: "pending" },
+  { id: "t10", ...vitals, due: "2026-10-22T08:00", status: "pending" },
+  { id: "t11", ...vitals, due: "2026-10-21T08:00", status: "pending" },
+  { id: "t12", ...vitals, due: "2026-10-31T08:00", status: "pending" },
+  { id: "t13", ...vitals, due: "2026-11-03T08:00", status: "pending" },
 ];

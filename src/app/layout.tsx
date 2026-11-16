@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Inter_Tight } from "next/font/google";
 
-import { Toaster } from "@/components/organisms";
+import { MotionProvider, Toaster } from "@/components/organisms";
 import "@/styles/globals.css";
 
 // Fonts from the Figma design system. Used by the type-* text styles in globals.css.
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${interTight.variable} ${inter.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        {children}
+        <MotionProvider>{children}</MotionProvider>
         <Toaster />
       </body>
     </html>

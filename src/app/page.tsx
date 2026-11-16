@@ -1,22 +1,15 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import {
-  ClockCard,
   DashboardAside,
   DashboardHeader,
   DashboardTabs,
-  OpenShifts,
   RecentChatsDock,
-  TodaySchedule,
 } from "@/components/organisms";
+import { HomeOverview } from "@/components/organisms/HomeOverview";
 import { AppShell, DashboardTemplate } from "@/components/templates";
-import {
-  DASHBOARD_TABS,
-  OPEN_SHIFTS,
-  QUICK_ACTIONS,
-  SCHEDULE,
-  TASKS,
-} from "@/lib/sample-dashboard";
+import { DASHBOARD_TABS, QUICK_ACTIONS, TASKS } from "@/lib/sample-dashboard";
 
 export const metadata: Metadata = {
   title: "Home | Proben",
@@ -31,9 +24,9 @@ export default function HomePage() {
         aside={<DashboardAside actions={QUICK_ACTIONS} tasks={TASKS} />}
         dock={<RecentChatsDock />}
       >
-        <ClockCard />
-        <TodaySchedule items={SCHEDULE} />
-        <OpenShifts items={OPEN_SHIFTS} available={3} />
+        <Suspense>
+          <HomeOverview />
+        </Suspense>
       </DashboardTemplate>
     </AppShell>
   );

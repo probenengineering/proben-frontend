@@ -5,3 +5,4 @@ export { InboxTemplate, type InboxTemplateProps } from "./InboxTemplate";
 export { DashboardTemplate, type DashboardTemplateProps } from "./DashboardTemplate";
 export { TasksTemplate, type TasksTemplateProps } from "./TasksTemplate";
 export { ChatTemplate, type ChatTemplateProps } from "./ChatTemplate";
+export { FlatPageTemplate, type FlatPageTemplateProps } from "./FlatPageTemplate";

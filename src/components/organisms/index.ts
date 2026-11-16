@@ -21,7 +21,7 @@ export { ForwardMessageDialog, type ForwardMessageDialogProps } from "./ForwardM
 export { ChatComposer } from "./ChatComposer";
 export { DashboardHeader, type DashboardHeaderProps } from "./DashboardHeader";
 export { type DashboardTab, DashboardTabs, type DashboardTabsProps } from "./DashboardTabs";
-export { ClockCard } from "./ClockCard";
+export { ClockCard, type ClockCardProps } from "./ClockCard";
 export { TodaySchedule, type TodayScheduleProps } from "./TodaySchedule";
 export { OpenShifts, type OpenShiftsProps } from "./OpenShifts";
 export { DashboardAside, type DashboardAsideProps } from "./DashboardAside";
@@ -32,7 +32,14 @@ export {
   type WeekCalendarProps,
 } from "./WeekCalendar";
 export { TaskGroup, type TaskGroupProps } from "./TaskGroup";
+export { TaskListBoard, type TaskListBoardProps } from "./TaskListBoard";
 export { CurrentUserBadge } from "./CurrentUserBadge";
 export { RecentChatsDock } from "./RecentChatsDock";
 export { InboxSearch, type InboxSearchProps } from "./InboxSearch";
 export { MuteToggle, type MuteToggleProps } from "./MuteToggle";
+export { HomesTable, type HomesTableProps } from "./HomesTable";
+export { HomeCard, type HomeCardProps } from "./HomeCard";
+export { HomesBrowser, type HomesBrowserProps } from "./HomesBrowser";
+export { HomeProfilePanel, type HomeProfilePanelProps } from "./HomeProfilePanel";
+export { NotificationList, type NotificationListProps } from "./NotificationList";
+export { MotionProvider, type MotionProviderProps } from "./MotionProvider";

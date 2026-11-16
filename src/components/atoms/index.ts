@@ -13,4 +13,6 @@ export { Separator, type SeparatorProps } from "./Separator";
 export { Checkbox, type CheckboxProps } from "./Checkbox";
 export { Switch, type SwitchProps } from "./Switch";
 export { StatusPill, type StatusPillProps } from "./StatusPill";
+export { ProgressRing, type ProgressRingProps } from "./ProgressRing";
 export { IconButton, type IconButtonProps } from "./IconButton";
+export { Appear, EASE_OUT, type AppearProps } from "./Appear";

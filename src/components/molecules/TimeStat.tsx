@@ -9,6 +9,8 @@ export interface TimeStatProps {
   align?: "start" | "end";
   /** Greyed-out value and lighter label, used before clocking in. */
   muted?: boolean;
+  /** Lighter (#737E8C) label only, e.g. "Clock-in time" and "Work Duration" while clocked in. */
+  mutedLabel?: boolean;
   className?: string;
 }
 
@@ -18,6 +20,7 @@ export function TimeStat({
   layout = "stacked",
   align = "start",
   muted,
+  mutedLabel,
   className,
 }: TimeStatProps) {
   return (
@@ -29,7 +32,9 @@ export function TimeStat({
         className,
       )}
     >
-      <span className={cn("type-paragraph-sm", muted ? "text-label" : "text-black-60")}>
+      <span
+        className={cn("type-paragraph-sm", muted || mutedLabel ? "text-label" : "text-black-60")}
+      >
         {label}
       </span>
       <span className={cn("type-title-md font-semibold", muted ? "text-black-50" : "text-black")}>

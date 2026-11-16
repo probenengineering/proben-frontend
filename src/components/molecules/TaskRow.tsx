@@ -1,55 +1,58 @@
 import Link from "next/link";
 
-import { Checkbox, Icon, StatusPill } from "@/components/atoms";
+import { Icon, StatusPill, type StatusPillProps } from "@/components/atoms";
 
-// Task list row: 24px checkbox with home and role, a time with clock icon, a status pill and a
-// › link. Desktop: four columns (the first three share the width). Below sm (agreed, not in
-// Figma): time and pill sit under the home name.
-export type TaskStatus = "pending" | "in-progress";
+import { TASK_TABLE_COLUMNS } from "./TaskTableHeader";
 
-const statuses: Record<TaskStatus, { label: string; tone: "orange" | "teal" }> = {
-  pending: { label: "Pending", tone: "orange" },
+// Task table row (Figma 51:10883): name · description (one line, "…") · due time · status pill
+// · › link. 50px tall, white-200 divider. Below sm (agreed, no Figma frame): name with the
+// description under it, then time and pill on one line, › on the right.
+export type TaskStatus = "pending" | "in-progress" | "completed" | "overdue";
+
+const statuses: Record<TaskStatus, { label: string; tone: StatusPillProps["tone"] }> = {
+  pending: { label: "Pending", tone: "outline" },
   "in-progress": { label: "In progress", tone: "teal" },
+  completed: { label: "Completed", tone: "mint" },
+  overdue: { label: "Over due", tone: "danger" },
 };
 
 export interface TaskRowProps {
-  home: string;
-  role: string;
+  name: string;
+  description: string;
+  /** "08 : 00 AM", or a date ("Nov 3, 2026") in the overdue group. */
   time: string;
   status: TaskStatus;
   href?: string;
 }
 
-export function TaskRow({ home, role, time, status, href = "#" }: TaskRowProps) {
+export function TaskRow({ name, description, time, status, href = "#" }: TaskRowProps) {
   const pill = statuses[status];
   return (
-    <li className="flex w-full items-stretch border-b border-white-200 bg-white last:border-b-0">
-      <div className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-stretch">
-        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-[32px] p-2">
-          <Checkbox size="lg" />
-          <span className="flex min-w-0 flex-1 flex-col gap-2">
-            <span className="type-title-md font-medium text-black">{home}</span>
-            <span className="type-title-sm text-black-50">{role}</span>
+    <li
+      className={`flex items-center border-b border-white-200 bg-white last:border-b-0 sm:grid ${TASK_TABLE_COLUMNS}`}
+    >
+      <div className="flex min-w-0 flex-1 flex-col gap-1 py-3 pr-2 pl-5 sm:contents">
+        <span className="truncate type-title-md text-black sm:py-3 sm:pr-2 sm:pl-5">{name}</span>
+        <span className="truncate type-title-sm text-black-50 sm:px-3 sm:py-3 sm:type-title-md sm:text-black">
+          {description}
+        </span>
+        <div className="flex items-center gap-3 pt-1 sm:contents">
+          <span className="type-title-md whitespace-nowrap text-black sm:px-10 sm:pt-3 sm:pb-3.5">
+            {time}
           </span>
-        </label>
-        <div className="flex items-center gap-4 pb-3 pl-10.5 sm:contents">
-          <div className="flex items-center justify-center gap-2.5 sm:flex-1 sm:px-5 sm:pt-3 sm:pb-3.5">
-            <Icon name="clock" size={16} />
-            <span className="type-title-sm whitespace-nowrap text-black">{time}</span>
-          </div>
-          <div className="flex items-center justify-center sm:flex-1 sm:px-5 sm:pt-3 sm:pb-3.5">
+          <span className="flex sm:justify-center sm:px-10 sm:py-2">
             <StatusPill tone={pill.tone} size="sm">
               {pill.label}
             </StatusPill>
-          </div>
+          </span>
         </div>
       </div>
       <Link
         href={href}
-        aria-label={`Open ${home}`}
-        className="flex shrink-0 items-center justify-center px-5 pt-3 pb-3.5"
+        aria-label={`Open ${name}`}
+        className="flex shrink-0 items-center justify-center self-stretch px-5 py-2"
       >
-        <Icon name="arrow-right-24" size={18} />
+        <Icon name="arrow-down" size={16} className="-rotate-90" />
       </Link>
     </li>
   );

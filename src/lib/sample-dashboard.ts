@@ -1,6 +1,7 @@
 import type { AvatarProps, IconName } from "@/components/atoms";
 import type { OpenShiftItemProps, ScheduleItemProps } from "@/components/molecules";
 import type { DashboardTab } from "@/components/organisms";
+import type { ScheduledShift } from "@/lib/shift-clock/types";
 
 // Sample home-dashboard data copied from the Figma frame, until real data is wired up.
 
@@ -8,8 +9,15 @@ export const DASHBOARD_TABS: DashboardTab[] = [
   { label: "Overview", href: "/" },
   { label: "Today’s Schedule" },
   { label: "My Tasks", href: "/tasks" },
-  { label: "My Homes" },
+  { label: "My Homes", href: "/homes" },
 ];
+
+/** The shift the "My time" clock runs against (Figma: 8:00 AM – 4:00 PM, 0h 30m break). */
+export const SHIFT: ScheduledShift = {
+  label: "8:00 AM – 4:00 PM",
+  durationMinutes: 8 * 60,
+  breakAllowanceMinutes: 30,
+};
 
 export const SCHEDULE: Omit<ScheduleItemProps, "first">[] = [
   {
