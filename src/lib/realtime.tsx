@@ -6,11 +6,16 @@ import { io, type Socket } from "socket.io-client";
 
 import { getSocketTicket, markDelivered } from "@/lib/messaging/actions";
 import type { ApiMessage } from "@/lib/messaging/types";
+import { playSound, primeSounds, soundForNotification } from "@/lib/sounds";
 
-// One live connection (Socket.IO) for the messages screens (Proben-Chat-Guide.md section 9).
-// Signs in with a single-use ticket, fetched again for every reconnect, so the access token stays
-// in its HttpOnly cookie. Sending goes through REST; this only receives.
-// - New messages: confirm delivery, and refresh the chat list (server data) shortly after.
+// One live connection (Socket.IO) for the whole signed-in app, opened by the (app) layout
+// (Proben-Chat-Guide.md section 9). Signs in with a single-use ticket, fetched again for every
+// reconnect, so the access token stays in its HttpOnly cookie. Sending goes through REST; this
+// only receives.
+// - New messages: confirm delivery; on the messages screens, refresh the chat list shortly after.
+// - New notifications (notification.new, a full inbox item): play the message or task sound, and
+//   refresh the Notifications page if it's open. The notifications service only sends what this
+//   person should be told, so muted chats, their own messages and turned-off categories stay quiet.
 // - Reconnect: "reconnected" so the open chat can fetch what it missed, and refresh the list.
 // - Session ended: back to sign-in.
 
@@ -50,6 +55,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [realtime] = useState(createRealtime);
 
+  useEffect(() => primeSounds(), []);
+
   useEffect(() => {
     let socket: Socket | undefined;
     let stopped = false;
@@ -57,7 +64,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     let deliveredTimer: ReturnType<typeof setTimeout> | undefined;
     const delivered = new Map<string, number>();
 
-    const refreshSoon = () => {
+    // Server data only changes on the messages screens (chat list, open chat) and the
+    // Notifications page; other pages aren't reloaded on every live event.
+    const refreshSoon = (onPaths: string[] = ["/messages"]) => {
+      if (!onPaths.some((path) => location.pathname.startsWith(path))) return;
       clearTimeout(refreshTimer);
       refreshTimer = setTimeout(() => router.refresh(), 400);
     };
@@ -129,6 +139,11 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           if (event !== "receipts.updated") refreshSoon();
         });
       }
+      socket.on("notification.new", (payload: unknown) => {
+        const sound = soundForNotification(payload, location.pathname, document.hasFocus());
+        if (sound) playSound(sound);
+        refreshSoon(["/notifications"]);
+      });
       socket.on("session.ended", signOut);
       socket.on("connect_error", (error: Error & { data?: { code?: string } }) => {
         const code = error.data?.code ?? "";
