@@ -159,6 +159,7 @@
 
   /* Modal shadow (Figma 60:10838): 0 20 48 -8 #0F1729 @ 20% */
   --shadow-modal: 0 20px 48px -8px rgb(15 23 41 / 0.2);
+  --shadow-search: 0 16px 40px -8px rgb(15 23 41 / 0.16); /* global search panel (Figma 60:15107) */
   --shadow-preview: 0 20px 48px -8px rgb(15 23 41 / 0.25); /* file preview dialog (Figma 60:14744) */
   /* Detail drawer shadow (Figma 60:6907): 0 12 40 -8 #0F1729 @ 16% */
   --shadow-drawer: 0 12px 40px -8px rgb(15 23 41 / 0.16);
@@ -404,6 +405,11 @@
   font-family: var(--font-family-inter);
   font-size: 0.6875rem; /* 11px, month view chips and "+N more" */
   line-height: 0.875rem; /* 14px */
+}
+@utility type-ui-11-16 {
+  font-family: var(--font-family-inter);
+  font-size: 0.6875rem; /* 11px, search panel group titles (Figma 60:15118) */
+  line-height: 1rem; /* 16px */
 }
 @utility type-ui-13-20 {
   font-family: var(--font-family-inter);

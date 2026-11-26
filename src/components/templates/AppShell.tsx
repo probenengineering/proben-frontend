@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Appear } from "@/components/atoms";
-import { AppSidebar } from "@/components/organisms";
+import { AppSidebar, GlobalSearch } from "@/components/organisms";
 import { cn } from "@/lib/utils";
 
 // Layout for app pages: grey page, sidebar on the left (272px, or 82px collapsed), content in a
@@ -55,6 +55,8 @@ export function AppShell({
           {/* Fades the page in on navigation; the sidebar stays still. */}
           <Appear className="flex min-h-0 w-full flex-1 flex-col">{children}</Appear>
         </main>
+        {/* ⌘K / the header search box open the global search (Figma 60:14989). */}
+        <GlobalSearch />
       </div>
     </div>
   );

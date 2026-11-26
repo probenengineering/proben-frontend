@@ -26,3 +26,4 @@ export { sourceLabel, SourceTag, type SourceTagProps } from "./SourceTag";
 export { PriorityLabel, type Priority, type PriorityLabelProps } from "./PriorityLabel";
 export { InitialsAvatar, type InitialsAvatarProps } from "./InitialsAvatar";
 export { MapCredit } from "./MapCredit";
+export { KeyHint, type KeyHintProps } from "./KeyHint";

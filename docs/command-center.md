@@ -36,7 +36,8 @@ in the numbered items further down (§0.2 – §0.2.2).
 
 - **R39a / R40a** `GET /homes/{id}/team`: names, roles, phone, on-shift status, "you" flag.
 - **R40b** `GET /homes/{id}/schedule`: shifts with staff, required staff, "is mine", coverage.
-- **R42** `GET /search` and `/search/recents` (global search, next to build).
+- **R42** `GET /search` and `/search/recents` (global search; the UI reads people, homes, tasks,
+  events, conversations and messages, and saves recents as `{ q }`). Files aren't returned yet.
 - **R36** `POST /api/files` (`UploadDto` is empty): `source` value for task uploads, response
   shape; `GET /api/files/{id}` must return `name` and `size`.
 
@@ -378,7 +379,7 @@ list shows your events (`GET /events`, 30 days back for Overdue) and tasks with 
       images inline (our server streams the file with `Content-Disposition: inline`); a page count
       ("Page 1 of 4") would need `pageCount` from the files service.
 
-- [ ] **R42. Global search (Figma 60:14989 – 60:15643, not built yet).** `GET /search?q=` (q ≥ 2
+- [ ] **R42. Global search (Figma 60:14989 – 60:15643, built 2026-11-26).** `GET /search?q=` (q ≥ 2
       characters) returns `tasks`, `events`, `homes`, `people`, `messages`, `conversations` and
       `scope`, but Swagger documents it as a free-form object. Please document each section's item
       fields. The design also has a **Files** scope and per-scope counts ("Messages 3", "Files 1");

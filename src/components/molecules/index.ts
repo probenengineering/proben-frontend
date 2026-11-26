@@ -149,3 +149,7 @@ export { MapHomeCard, type MapHomeCardProps } from "./MapHomeCard";
 export { ClusterList, type ClusterListProps } from "./ClusterList";
 export { MapControls, type MapControlsProps } from "./MapControls";
 export { MapNotice, type MapNoticeProps } from "./MapNotice";
+export { SEARCH_SCOPES, SearchScopeTabs, type SearchScopeTabsProps } from "./SearchScopeTabs";
+export { SearchResultRow, type SearchResultRowProps } from "./SearchResultRow";
+export { SearchSectionHeader, type SearchSectionHeaderProps } from "./SearchSectionHeader";
+export { SearchFooter, type SearchFooterProps } from "./SearchFooter";

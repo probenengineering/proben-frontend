@@ -156,6 +156,12 @@ export type IconName =
   | "lock-18"
   | "view-18"
   | "download-18"
+  | "search-recent-18"
+  | "search-clockin-18"
+  | "search-tasks-18"
+  | "search-schedule-18"
+  | "search-message-18"
+  | "search-home-18"
   | "view-list-16"
   | "view-map-active-16";
 

@@ -2,9 +2,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { Icon } from "@/components/atoms";
-import { SearchField } from "@/components/molecules";
 
 import { CurrentUserBadge } from "./CurrentUserBadge";
+import { GlobalSearchTrigger } from "./GlobalSearchTrigger";
 import { MobileNav } from "./MobileNav";
 import { UserGreeting } from "./UserGreeting";
 
@@ -38,7 +38,7 @@ export function DashboardHeader({ greeting, wideSearch }: DashboardHeaderProps) 
       </div>
 
       <div className="px-5 pb-4 lg:absolute lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:p-0">
-        <SearchField className={wideSearch ? "w-full lg:w-80" : "w-full lg:w-60.25"} />
+        <GlobalSearchTrigger className={wideSearch ? "w-full lg:w-80" : "w-full lg:w-60.25"} />
       </div>
 
       <div className="hidden items-center gap-5 lg:flex">

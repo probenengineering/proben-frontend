@@ -70,3 +70,5 @@ export { AssignedHomes, type AssignedHomesProps } from "./AssignedHomes";
 export { HomeDetailView, type HomeDetailViewProps } from "./HomeDetailView";
 export { HomesMapLoading } from "./HomesMapLoading";
 export { HomeOverviewTab, type HomeOverviewTabProps } from "./HomeOverviewTab";
+export { GlobalSearch } from "./GlobalSearch";
+export { GlobalSearchTrigger, type GlobalSearchTriggerProps } from "./GlobalSearchTrigger";

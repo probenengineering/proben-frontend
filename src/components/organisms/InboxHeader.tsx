@@ -7,7 +7,7 @@ import type { FilterCatalog } from "@/lib/messaging/types";
 import { ChatFilterMenu } from "./ChatFilterMenu";
 import { ChatViewMenu } from "./ChatViewMenu";
 import { CurrentUserBadge } from "./CurrentUserBadge";
-import { InboxSearch } from "./InboxSearch";
+import { GlobalSearchTrigger } from "./GlobalSearchTrigger";
 import { MobileNav } from "./MobileNav";
 
 // Figma: Inbox title bar (87px, white-400 bottom border).
@@ -42,12 +42,12 @@ export function InboxHeader({ filters, catalog }: InboxHeaderProps) {
       </div>
 
       <div className="px-5 pb-4 lg:hidden">
-        <InboxSearch filters={filters} className="w-full" />
+        <GlobalSearchTrigger className="w-full" />
       </div>
 
       <div className="hidden flex-1 items-center pr-10 lg:flex">
         {/* 384px list zone + 284px = 668px, as in Figma. */}
-        <InboxSearch filters={filters} className="ml-71" />
+        <GlobalSearchTrigger className="ml-71" />
         <div className="ml-auto flex items-center gap-5">
           <span className="h-3 w-0.5 bg-white-700" />
           <CurrentUserBadge />
