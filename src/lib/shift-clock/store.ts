@@ -1,6 +1,7 @@
 import {
   clockInAction,
   clockOutAction,
+  requestManualClockInAction,
   resumeWorkAction,
   startBreakAction,
   type AttendanceResult,
@@ -13,10 +14,11 @@ import type { ScheduledShift, ShiftClock } from "./types";
 // Runs a clock action against the Command Center attendance API. Client-side; the hook owns the
 // state and decides how to show a failure (toast, or the "Clock-in failed" card).
 
-export type ClockAction = "clock-in" | "break" | "resume" | "clock-out";
+export type ClockAction = "clock-in" | "manual-clock-in" | "break" | "resume" | "clock-out";
 
 export type ClockActionResult =
-  { ok: true; clock: ShiftClock } | { ok: false; error: string; reason?: string };
+  | { ok: true; clock: ShiftClock }
+  | { ok: false; error: string; reason?: string; distanceMeters?: number };
 
 /** Our own reason when the browser gives no position (the API's are LOCATION_*). */
 export const LOCATION_UNAVAILABLE = "LOCATION_UNAVAILABLE";
@@ -56,6 +58,8 @@ async function call(
       }
       return clockInAction(shift.id, position);
     }
+    case "manual-clock-in":
+      return requestManualClockInAction(shift.id, location);
     case "break":
       return startBreakAction();
     case "resume":

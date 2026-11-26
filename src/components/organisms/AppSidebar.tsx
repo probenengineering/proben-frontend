@@ -8,25 +8,21 @@ import { CurrentUserCard } from "./CurrentUserCard";
 import { MessagesMenuItem } from "./MessagesMenuItem";
 
 // Figma component "Sidebar": 272px with labels, or 82px icons-only when collapsed (chat open).
-// No item is highlighted, matching the chat frames. Items aren't links yet.
+// The main item for the current page is highlighted from the page's `data-nav` marker (peach,
+// Figma: Home on the Tasks screens; none on the home page and chats, matching those frames).
+// Inside the flat shell (Notifications frames) it turns white and shows a search field (not wired
+// to anything yet). Both are CSS-only, so nothing here reads the URL.
 export interface AppSidebarProps {
   collapsed?: boolean;
-  /** Highlights a main item with the peach active style (Figma: Home on the Tasks screens). */
-  activeItem?: "home" | "notifications";
-  /** "white" = white background (My Homes frames); default grey (sits on the page). */
-  tone?: "grey" | "white";
-  /** Search field under the logo (My Homes frames). Not wired to anything yet. */
-  search?: boolean;
 }
 
-export function AppSidebar({ collapsed, activeItem, tone = "grey", search }: AppSidebarProps) {
+export function AppSidebar({ collapsed }: AppSidebarProps) {
   const item = { collapsed };
   return (
     <aside
       className={cn(
-        "flex h-full shrink-0 flex-col justify-between overflow-clip rounded-[12px] py-6",
+        "flex h-full shrink-0 flex-col justify-between overflow-clip rounded-[12px] py-6 group-has-[[data-shell=flat]]/shell:bg-white",
         collapsed ? "w-20.5" : "w-68",
-        tone === "white" && "bg-white",
       )}
     >
       <div className="flex flex-col gap-3">
@@ -34,8 +30,8 @@ export function AppSidebar({ collapsed, activeItem, tone = "grey", search }: App
           <Logo variant={collapsed ? "compact" : "full"} />
         </div>
         <div className="flex flex-col gap-5">
-          {search && !collapsed && (
-            <div className="px-4">
+          {!collapsed && (
+            <div className="hidden px-4 group-has-[[data-shell=flat]]/shell:block">
               {/* Figma: 36px, grey-300 border, 6px radius, 20px icon, grey-400 placeholder. */}
               <Input
                 aria-label="Search"
@@ -51,7 +47,7 @@ export function AppSidebar({ collapsed, activeItem, tone = "grey", search }: App
                 icon="home"
                 label="Home"
                 href="/"
-                active={activeItem === "home"}
+                activeFor="home"
                 activeTone="peach"
                 {...item}
               />
@@ -72,7 +68,7 @@ export function AppSidebar({ collapsed, activeItem, tone = "grey", search }: App
                 icon="notification"
                 label="Notifications"
                 href="/notifications"
-                active={activeItem === "notifications"}
+                activeFor="notifications"
                 activeTone="peach"
                 {...item}
               />

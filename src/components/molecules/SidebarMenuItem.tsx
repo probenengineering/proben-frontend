@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 // background, or peach (avatar-orange, Figma "Primary/50") with activeTone="peach" (Home/Tasks).
 // collapsed: icon only, centred (collapsed 82px sidebar); the label becomes the accessible name.
 // href: renders the item as a link (e.g. Messages → /messages).
+// activeFor: highlights the item whenever the page carries a matching `data-nav` marker (set by
+// the page's template), with CSS only, so the sidebar can stay mounted in the shared layout.
 export interface SidebarMenuItemProps {
   icon: IconName;
   label: string;
@@ -20,7 +22,23 @@ export interface SidebarMenuItemProps {
   collapsed?: boolean;
   /** Makes the item a link, e.g. "/messages". */
   href?: string;
+  /** Active when the page has `data-nav="<value>"` (peach style). */
+  activeFor?: "home" | "notifications";
 }
+
+// Literal class names so Tailwind generates them. `in-[…]` also reaches the ☰ drawer (a portal).
+const ACTIVE_FOR = {
+  home: {
+    item: "in-[body:has([data-nav=home])]:border in-[body:has([data-nav=home])]:border-avatar-orange in-[body:has([data-nav=home])]:bg-avatar-orange",
+    label:
+      "in-[body:has([data-nav=home])]:font-medium in-[body:has([data-nav=home])]:text-grey-900",
+  },
+  notifications: {
+    item: "in-[body:has([data-nav=notifications])]:border in-[body:has([data-nav=notifications])]:border-avatar-orange in-[body:has([data-nav=notifications])]:bg-avatar-orange",
+    label:
+      "in-[body:has([data-nav=notifications])]:font-medium in-[body:has([data-nav=notifications])]:text-grey-900",
+  },
+} as const;
 
 export function SidebarMenuItem({
   icon,
@@ -31,6 +49,7 @@ export function SidebarMenuItem({
   trailing,
   collapsed,
   href,
+  activeFor,
 }: SidebarMenuItemProps) {
   const className = cn(
     // Figma radius 4px; no radius token yet.
@@ -38,6 +57,7 @@ export function SidebarMenuItem({
     collapsed && "justify-center",
     active &&
       (activeTone === "peach" ? "border border-avatar-orange bg-avatar-orange" : "bg-white-500"),
+    activeFor && ACTIVE_FOR[activeFor].item,
   );
   const ariaLabel = collapsed ? label : undefined;
 
@@ -50,6 +70,7 @@ export function SidebarMenuItem({
             className={cn(
               "type-paragraph-sm",
               active ? "font-medium text-grey-900" : "text-grey-700",
+              activeFor && ACTIVE_FOR[activeFor].label,
             )}
           >
             {label}

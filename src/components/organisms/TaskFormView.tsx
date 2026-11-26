@@ -85,7 +85,7 @@ export function TaskFormView({
             file={form.files[field.key]}
             online={online}
             onChange={(value) => form.setAnswer(field.key, value)}
-            onFile={(f) => form.upload(field.key, f)}
+            onFile={(f) => form.upload(field, f)}
             onRemoveFile={() => form.remove(field.key)}
             error={form.errors[field.key]}
           />

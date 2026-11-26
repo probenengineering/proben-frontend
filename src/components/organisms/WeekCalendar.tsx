@@ -55,6 +55,8 @@ export interface WeekCalendarProps {
   date: string;
   /** Loading skeleton (Figma 60:8230): grey blocks instead of events, headers inert. */
   loading?: boolean;
+  /** Show "Add task" in the day popover: the person may assign tasks (org.manage). */
+  canAddTask?: boolean;
 }
 
 function hourLabel(hour: number) {
@@ -76,6 +78,7 @@ export function WeekCalendar({
   loading,
   base,
   date,
+  canAddTask = false,
 }: WeekCalendarProps) {
   const [openDay, setOpenDay] = useState<number | null>(null);
   const [openEvent, setOpenEvent] = useState<string | null>(null);
@@ -188,6 +191,7 @@ export function WeekCalendar({
                       label={day.label}
                       items={items.filter((i) => i.day === d).map((i) => i.item)}
                       dayHref={calendarHref(base, "day", day.key)}
+                      canAddTask={canAddTask}
                       onClose={() => setOpenDay(null)}
                     />
                   </PopoverContent>

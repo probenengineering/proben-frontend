@@ -2,7 +2,9 @@
 // Timestamps are epoch ms on the device clock (server times shifted by the measured skew).
 
 /** "completed" = clocked out of this shift (Figma "Shift complete"). */
-export type ClockStatus = "not_clocked_in" | "clocked_in" | "on_break" | "completed";
+/** "pending_approval" = a manual clock-in request is waiting for a manager. */
+export type ClockStatus =
+  "not_clocked_in" | "pending_approval" | "clocked_in" | "on_break" | "completed";
 
 export interface ShiftClock {
   status: ClockStatus;

@@ -1,3 +1,5 @@
+import type { TaskField } from "@/types/task-table";
+
 // Command Center API shapes (GET /api/commandcenter/docs-json, v0.1.0). Only the fields the
 // UI reads. All instants are ISO 8601 UTC strings.
 
@@ -46,7 +48,9 @@ export interface ApiShift {
   home?: ApiHome;
 }
 
-export type ApiAttendanceStatus = "not_clocked_in" | "working" | "on_break" | "completed";
+/** pending_approval: a manual clock-in request is waiting for a manager. */
+export type ApiAttendanceStatus =
+  "not_clocked_in" | "working" | "on_break" | "completed" | "pending_approval";
 
 export interface ApiAttendance {
   status: ApiAttendanceStatus;
@@ -64,6 +68,13 @@ export interface ApiAttendance {
   /** Live totals as of serverTime (missing when not clocked in). */
   breakSeconds?: number;
   workedSeconds?: number;
+  /** The latest manual clock-in request for the current shift, if any. */
+  manualClockInRequest?: {
+    id: string;
+    shiftId: string;
+    status: "pending" | "approved" | "rejected";
+    feedback?: string | null;
+  } | null;
 }
 
 export interface ApiEvent {
@@ -94,13 +105,10 @@ export interface ApiTask {
   updatedAt?: string;
   completedAt?: string | null;
   submittedAt?: string | null;
+  /** Reviewer's note when the task was sent back (needs_attention). */
+  feedback?: string | null;
   /** Form fields; a task with required fields is finished through its form, not "Mark as complete". */
-  fields?: {
-    key: string;
-    label: string;
-    type: "text" | "number" | "boolean" | "file";
-    required: boolean;
-  }[];
+  fields?: TaskField[];
   answers?: Record<string, string | number | boolean | null>;
   /** File ids (files service) attached to the draft / submission. */
   attachments?: string[];
@@ -130,6 +138,8 @@ export interface ApiHomeUpdate {
   body: string;
   requiresAck: boolean;
   createdById: string;
+  /** The author, as shown on the update card. */
+  createdBy?: { id: string; name: string; role?: string | null } | null;
   createdAt: string;
   acknowledgedAt?: string | null;
 }

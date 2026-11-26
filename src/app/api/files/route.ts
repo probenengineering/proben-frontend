@@ -23,7 +23,8 @@ export async function POST(request: Request) {
   const body = new FormData();
   body.set("file", file, file.name);
   body.set("clientUploadId", String(form.get("clientUploadId") ?? crypto.randomUUID()));
-  body.set("source", "task");
+  // `source` is the physical source, not the feature: task and HR uploads use "document".
+  body.set("source", "document");
 
   let upstream: Response;
   try {

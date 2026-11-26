@@ -23,7 +23,7 @@ export function DashboardHeader({ greeting, wideSearch }: DashboardHeaderProps) 
     <header className="relative flex w-full shrink-0 flex-col border-b border-white-400 lg:h-21.75 lg:flex-row lg:items-center lg:justify-between lg:px-10">
       <div className="flex h-16 items-center justify-between px-5 lg:h-auto lg:px-0">
         <div className="flex min-w-0 items-center gap-3">
-          <MobileNav className="md:hidden" activeItem="home" />
+          <MobileNav className="md:hidden" />
           <h1 className="truncate type-title-lg font-medium text-black">
             {greeting ?? (
               <Suspense fallback="Hello">

@@ -8,14 +8,16 @@ import { WeekCalendar } from "./WeekCalendar";
 export interface WeekCalendarDataProps {
   base: string;
   date: string;
+  /** Show "Add task" in the day popover: the person may assign tasks (org.manage). */
+  canAddTask?: boolean;
 }
 
-export async function WeekCalendarData({ base, date }: WeekCalendarDataProps) {
+export async function WeekCalendarData({ base, date, canAddTask }: WeekCalendarDataProps) {
   const { error, ...calendar } = await getTaskCalendar(date);
   return (
     <>
       {error && <EmptyPanel message={error} />}
-      <WeekCalendar {...calendar} base={base} date={date} />
+      <WeekCalendar {...calendar} base={base} date={date} canAddTask={canAddTask} />
     </>
   );
 }

@@ -1,9 +1,8 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
 
 import { ApiError, errorMessage } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import { getAccessToken, sessionEnded } from "@/lib/auth/session";
 import {
   getTimezone,
   listHomes,
@@ -59,7 +58,7 @@ export async function getAssignedHomes(): Promise<HomesResult> {
       ),
     };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) redirect("/sign-in");
+    if (error instanceof ApiError && error.status === 401) sessionEnded();
     return { homes: [], error: errorMessage(error) };
   }
 }

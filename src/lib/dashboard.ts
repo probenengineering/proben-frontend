@@ -1,12 +1,11 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import type { OpenShiftsProps } from "@/components/organisms/OpenShifts";
 import type { TodayScheduleProps } from "@/components/organisms/TodaySchedule";
 import { ApiError } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import { getAccessToken, sessionEnded } from "@/lib/auth/session";
 import {
   commandCenter,
   getTodayOverview,
@@ -90,7 +89,7 @@ export const getDashboardOverview = cache(async (): Promise<DashboardOverview> =
       openShiftsAvailable: open.total ?? openItems.length,
     };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) redirect("/sign-in");
+    if (error instanceof ApiError && error.status === 401) sessionEnded();
     return EMPTY_OVERVIEW;
   }
 });
@@ -109,6 +108,10 @@ async function clockShift(shifts: ApiShift[], attendance: ApiAttendance, now: nu
 
   if (record && (attendance.status === "working" || attendance.status === "on_break")) {
     return { shift: await byId(record.shiftId), attendance };
+  }
+  const pending = attendance.manualClockInRequest;
+  if (attendance.status === "pending_approval" && pending) {
+    return { shift: await byId(pending.shiftId), attendance };
   }
   const next = shifts
     .filter((s) => Date.parse(s.endsAt) > now && s.id !== record?.shiftId)

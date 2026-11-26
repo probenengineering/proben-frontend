@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import type { Tokens } from "./api";
 import {
@@ -38,6 +39,14 @@ export async function clearSession() {
   jar.delete(ACCESS_COOKIE);
   jar.delete(REFRESH_COOKIE);
   jar.delete(FLOW_COOKIE);
+}
+
+/**
+ * The backend rejected the session (401). Goes through /sign-out, which clears the cookies;
+ * a plain redirect to /sign-in would loop, as the proxy sends signed-in people back to the app.
+ */
+export function sessionEnded(): never {
+  redirect("/sign-out");
 }
 
 export async function getFlow(): Promise<AuthFlow | undefined> {

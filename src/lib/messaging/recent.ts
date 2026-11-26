@@ -12,6 +12,14 @@ import type { ApiConversation } from "./types";
  * Messages dock. Empty when signed out or when chats can't be loaded; never redirects.
  */
 export async function loadRecentContacts(limit = 3): Promise<ChatTarget[]> {
+  try {
+    return await recentContacts(limit);
+  } catch {
+    return [];
+  }
+}
+
+async function recentContacts(limit: number): Promise<ChatTarget[]> {
   const me = await getCurrentUser();
   if (!me) return [];
   const conversations = await listConversations().catch(() => [] as ApiConversation[]);

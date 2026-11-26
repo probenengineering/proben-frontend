@@ -1,10 +1,8 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
-
 import type { CalendarDay, CalendarEventData } from "@/components/organisms/WeekCalendar";
 import { ApiError, errorMessage } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import { getAccessToken, sessionEnded } from "@/lib/auth/session";
 import type { TaskRecord, TaskRecordStatus } from "@/lib/tasks";
 
 import type { ScheduleItem } from "@/types/schedule";
@@ -32,13 +30,13 @@ const STATUS: Partial<Record<ApiTaskStatus, TaskRecordStatus>> = {
   upcoming: "pending",
   needs_attention: "pending",
   in_progress: "in-progress",
-  // Submitted = waiting for manager review; the staff member's part is done.
-  submitted: "completed",
+  // Submitted = waiting for manager review: In progress, not Completed (GET /tasks).
+  submitted: "in-progress",
   completed: "completed",
 };
 
 function handle(error: unknown) {
-  if (error instanceof ApiError && error.status === 401) redirect("/sign-in");
+  if (error instanceof ApiError && error.status === 401) sessionEnded();
   return errorMessage(error);
 }
 

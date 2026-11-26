@@ -1,9 +1,10 @@
 import "server-only";
 
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { ApiError, errorMessage } from "@/lib/auth/api";
+import { sessionEnded } from "@/lib/auth/session";
 import { type CurrentUser, getCurrentUser } from "@/lib/auth/user";
 import type { ChatAvatar } from "@/lib/chat-types";
 
@@ -57,7 +58,7 @@ const EMPTY: InboxSections = { sections: [], groupSections: [], announcementSect
 
 async function requireUser() {
   const me = await getCurrentUser();
-  if (!me) redirect("/sign-in");
+  if (!me) sessionEnded();
   return me;
 }
 
@@ -77,7 +78,7 @@ export async function loadInbox(filters: InboxFilters = DEFAULT_FILTERS): Promis
     conversations = all;
     shown = orderChats(matching ?? all, filters);
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) redirect("/sign-in");
+    if (error instanceof ApiError && error.status === 401) sessionEnded();
     const base = { me, ...EMPTY, targets: [], names: {}, filters, catalog: await catalog };
     return { ...base, error: errorMessage(error) };
   }

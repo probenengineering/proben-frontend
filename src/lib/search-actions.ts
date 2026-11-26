@@ -1,7 +1,6 @@
 "use server";
 
 import { errorMessage } from "@/lib/auth/api";
-import { getCurrentUser } from "@/lib/auth/user";
 import {
   commandCenter,
   getTimezone,
@@ -11,10 +10,7 @@ import {
   requestTime,
 } from "@/lib/command-center/api";
 import { addDays, dayKey, formatDay, formatTime, startOfDay } from "@/lib/command-center/time";
-import type { ApiEvent, ApiHome, ApiTask } from "@/lib/command-center/types";
-import { lookupNames } from "@/lib/messaging/api";
-import { conversationTitle } from "@/lib/messaging/mappers";
-import type { ApiConversation, ApiMessage } from "@/lib/messaging/types";
+import type { ApiHome } from "@/lib/command-center/types";
 import type { QuickAction, SearchItem, SearchResults } from "@/types/search";
 
 // Global search (Figma 60:14989 – 60:15643). GET /search?q= (2+ characters) returns tasks, events,
@@ -22,14 +18,27 @@ import type { QuickAction, SearchItem, SearchResults } from "@/types/search";
 // Recent searches: GET/POST/DELETE /search/recents. Quick actions read today's overview, tasks
 // and open shifts for their counts.
 
+// Search returns slim items, not the full task / event / conversation / message objects.
 interface SearchResponse {
-  tasks?: ApiTask[];
-  events?: ApiEvent[];
+  tasks?: { id: string; title: string; status: string; dueAt: string | null }[];
+  events?: { id: string; title: string; startsAt: string }[];
   homes?: { items?: ApiHome[] };
   people?: { data?: { items?: Person[] } };
-  conversations?: { data?: { items?: ApiConversation[] } };
-  messages?: { data?: { items?: ApiMessage[] } };
+  conversations?: { data?: { items?: { id: string; type: string; name?: string | null }[] } };
+  messages?: {
+    data?: {
+      items?: { id: string; conversationId: string; body?: string | null; sentAt?: string }[];
+    };
+  };
 }
+
+const CONVERSATION_KIND: Record<string, string> = {
+  direct: "Direct message",
+  group: "Group",
+  announcement: "Announcement",
+};
+/** Tasks past their due time count as overdue unless they're finished or waiting for review. */
+const NOT_OVERDUE = new Set(["submitted", "completed", "cancelled"]);
 
 interface Person {
   id: string;
@@ -62,33 +71,25 @@ export async function searchAction(query: string): Promise<SearchResults> {
   const q = query.trim();
   if (q.length < 2) return { query: q, items: [] };
   try {
-    const [data, me, tz, now] = await Promise.all([
+    const [data, tz, now] = await Promise.all([
       commandCenter<SearchResponse>(`/search?q=${encodeURIComponent(q)}`),
-      getCurrentUser(),
       getTimezone(),
       requestTime(),
     ]);
     const conversations = data.conversations?.data?.items ?? [];
     const messages = data.messages?.data?.items ?? [];
-    const names = await lookupNames([
-      ...conversations.flatMap((c) => c.participants),
-      ...messages.flatMap((m) => (m.senderId ? [m.senderId] : [])),
-    ]).catch(() => ({}) as Record<string, string>);
-    const meId = me?.id ?? "";
+    // Messages carry no sender, so they're titled by the chat they're in when it's also a result.
+    const chatNames = new Map(conversations.map((c) => [c.id, c.name]));
     const items: SearchItem[] = [];
 
     for (const c of conversations) {
-      const title = conversationTitle(c, names, meId);
-      const kind =
-        c.type === "direct" ? "Direct message" : c.type === "group" ? "Group" : "Announcement";
+      const kind = CONVERSATION_KIND[c.type] ?? "Conversation";
+      const title = c.name || kind;
       items.push({
         id: `conversation-${c.id}`,
         scope: "people",
         title,
-        detail: [kind, c.lastMessage?.preview && `“${c.lastMessage.preview}”`]
-          .filter(Boolean)
-          .join(" · "),
-        meta: ago(c.lastMessageAt, now, tz),
+        detail: c.name ? kind : undefined,
         href: `/messages/${encodeURIComponent(c.id)}`,
         initials: initials(title),
         tone: c.type === "direct" ? "sky" : "purple",
@@ -128,7 +129,7 @@ export async function searchAction(query: string): Promise<SearchResults> {
         id: `event-${e.id}`,
         scope: "schedule",
         title: e.title,
-        detail: `${formatDay(day, { weekday: "short", day: "numeric", month: "short" })} · ${formatTime(e.startsAt, tz)} – ${formatTime(e.endsAt, tz)}`,
+        detail: `${formatDay(day, { weekday: "short", day: "numeric", month: "short" })} · ${formatTime(e.startsAt, tz)}`,
         meta: "Event",
         href: `/schedule?view=day&date=${day}`,
         icon: "schedule",
@@ -143,20 +144,22 @@ export async function searchAction(query: string): Promise<SearchResults> {
         detail: t.dueAt
           ? `Due ${formatDay(dayKey(t.dueAt, tz), { month: "short", day: "numeric" })}`
           : "Task",
-        meta: t.isOverdue ? "Overdue" : undefined,
-        href: `/tasks?task=${encodeURIComponent(t.id)}`,
+        meta:
+          t.dueAt && Date.parse(t.dueAt) < now && !NOT_OVERDUE.has(t.status)
+            ? "Overdue"
+            : undefined,
+        href: "/tasks/list",
         icon: "tasks",
         tone: "amber",
       });
     }
     for (const m of messages) {
-      const sender = (m.senderId && names[m.senderId]) || "Message";
       items.push({
         id: `message-${m.id}`,
         scope: "messages",
-        title: sender,
+        title: chatNames.get(m.conversationId) || "Message",
         detail: m.body ? `“${m.body.slice(0, 120)}”` : undefined,
-        meta: ago(m.sentAt ?? m.createdAt, now, tz),
+        meta: ago(m.sentAt, now, tz),
         href: `/messages/${encodeURIComponent(m.conversationId)}`,
         icon: "message",
         tone: "emerald",

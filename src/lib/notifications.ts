@@ -1,9 +1,7 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
-
 import { ApiError, errorMessage, request, type RequestOptions } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import { getAccessToken, sessionEnded } from "@/lib/auth/session";
 import { requestTime } from "@/lib/command-center/api";
 import type { AppNotification, NotificationKind } from "@/types/notification";
 
@@ -28,9 +26,18 @@ interface ApiInboxItem {
   body: string;
   readAt: string | null;
   createdAt: string;
-  /** The record it's about. `type` values aren't documented yet, so links use the ids. */
+  /** The record it's about. */
   destination?: {
-    type: string;
+    type:
+      | "message"
+      | "task"
+      | "shift"
+      | "event"
+      | "attendance"
+      | "home_resource"
+      | "home_update"
+      | "home"
+      | "time_off";
     id: string;
     homeId: string | null;
     conversationId: string | null;
@@ -68,7 +75,7 @@ export async function getNotifications(): Promise<NotificationFeed> {
     const now = page.serverTime ? Date.parse(page.serverTime) : await requestTime();
     return { notifications: page.items.map((item) => toNotification(item, now)) };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) redirect("/sign-in");
+    if (error instanceof ApiError && error.status === 401) sessionEnded();
     return { notifications: [], error: errorMessage(error) };
   }
 }
@@ -88,11 +95,26 @@ function toNotification(item: ApiInboxItem, now: number): AppNotification {
   };
 }
 
-/** A chat opens that conversation, a home opens its profile; else the kind's default page. */
+/** Where "View …" goes for each destination type; else the kind's default page. */
 function hrefOf(d: ApiInboxItem["destination"], category: string) {
   if (d?.conversationId) return `/messages/${encodeURIComponent(d.conversationId)}`;
-  if (category === "homes" && d?.homeId) return `/homes?home=${encodeURIComponent(d.homeId)}`;
-  return undefined;
+  const home = d?.homeId && `/homes/${encodeURIComponent(d.homeId)}`;
+  switch (d?.type) {
+    case "task":
+      return "/tasks/list";
+    case "shift":
+    case "event":
+      return "/schedule";
+    case "attendance":
+      return "/";
+    case "home_update":
+      return home ? `${home}?tab=updates` : undefined;
+    case "home_resource":
+      return home ? `${home}?tab=resources` : undefined;
+    case "home":
+      return home || undefined;
+  }
+  return category === "homes" && home ? home : undefined;
 }
 
 /** "Just now", "10 min ago", "3 hr ago", "Yesterday", "4 days ago", then "Nov 5, 2026". */

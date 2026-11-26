@@ -8,8 +8,16 @@ import type { ScheduleItem } from "./schedule";
 export interface TaskField {
   key: string;
   label: string;
-  type: "text" | "number" | "boolean" | "file";
-  required: boolean;
+  type: "text" | "number" | "boolean" | "file" | "date" | "phone";
+  required?: boolean;
+  /** Help text under the field. */
+  hint?: string;
+  /** date: "YYYY-MM-DD" bounds in the task's timezone. */
+  minDate?: string;
+  maxDate?: string;
+  /** file: what the field accepts (falls back to PDF, JPG or PNG up to 10 MB). */
+  acceptedMimeTypes?: string[];
+  maxSizeBytes?: number;
 }
 
 export type TaskAnswers = Record<string, string | number | boolean | null>;
@@ -34,6 +42,10 @@ export interface TaskTableItem {
   /** Epoch ms the task was created, for "Sort: Recent". */
   createdAt: number;
   status: TaskTableStatus;
+  /** Submitted and waiting for a manager's review (shown as In progress, nothing to do). */
+  inReview: boolean;
+  /** needs_attention: what the reviewer asked to change. */
+  feedback?: string;
   /** Completed tasks: "Oct 20, 2026" and "On time" / "1 day late"; epoch ms for "Most recent". */
   completedDate?: string;
   completedRelative?: string;

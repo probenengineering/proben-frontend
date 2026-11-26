@@ -52,6 +52,7 @@ export { ScheduleDetailPanel, type ScheduleDetailPanelProps } from "./ScheduleDe
 export { ScheduleList } from "./ScheduleList";
 export { MySchedule } from "./MySchedule";
 export { ScheduleListSkeleton } from "./ScheduleListSkeleton";
+export { ContentSkeleton, type ContentSkeletonProps } from "./ContentSkeleton";
 export { CalendarDayPopover, type CalendarDayPopoverProps } from "./CalendarDayPopover";
 export { CalendarEventPopover, type CalendarEventPopoverProps } from "./CalendarEventPopover";
 export { CalendarToolbar, type CalendarToolbarProps } from "./CalendarToolbar";

@@ -33,9 +33,11 @@ export interface MonthCalendarProps {
   base: string;
   date: string;
   data: MonthCalendarData;
+  /** Show "Add task" in the day popover: the person may assign tasks (org.manage). */
+  canAddTask?: boolean;
 }
 
-export function MonthCalendar({ base, date, data }: MonthCalendarProps) {
+export function MonthCalendar({ base, date, data, canAddTask = false }: MonthCalendarProps) {
   const [openKey, setOpenKey] = useState<string | null>(null);
   return (
     <section className="flex w-full flex-col gap-4 p-4">
@@ -72,6 +74,7 @@ export function MonthCalendar({ base, date, data }: MonthCalendarProps) {
                       label={longLabel(cell.key)}
                       items={itemsOf(cell)}
                       dayHref={calendarHref(base, "day", cell.key)}
+                      canAddTask={canAddTask}
                       onClose={() => setOpenKey(null)}
                     />
                   </PopoverContent>

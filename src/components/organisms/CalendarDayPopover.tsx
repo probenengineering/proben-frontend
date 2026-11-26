@@ -9,7 +9,8 @@ import type { ScheduleItem } from "@/types/schedule";
 // "Day agenda panel" (Figma 60:7511), shown when a day header is clicked: 372px, 20px radius,
 // slate-200 border, popover shadow. Solid date badge + "Tuesday, 23 October" + counts + close;
 // progress bar with "83% of the day's tasks done"; the day's agenda cards; Add task / Open day
-// view. Staff can't create tasks yet, so Add task does nothing; Open day view goes to `dayHref`.
+// view. Add task shows only with `canAddTask` (org.manage) and isn't wired yet; Open day view
+// goes to `dayHref`.
 export interface CalendarDayPopoverProps {
   weekday: string;
   date: number;
@@ -18,6 +19,8 @@ export interface CalendarDayPopoverProps {
   items: ScheduleItem[];
   /** "Open day view" target; the Schedule list when omitted. */
   dayHref?: string;
+  /** Show "Add task": the person may assign tasks (org.manage). */
+  canAddTask?: boolean;
   onClose: () => void;
 }
 
@@ -29,6 +32,7 @@ export function CalendarDayPopover({
   label,
   items,
   dayHref = "/schedule/list",
+  canAddTask = false,
   onClose,
 }: CalendarDayPopoverProps) {
   const done = items.filter((i) => i.status === "completed").length;
@@ -83,10 +87,12 @@ export function CalendarDayPopover({
       </ul>
 
       <div className="flex gap-2.5 border-t border-slate-200 px-5 pt-3 pb-4.5">
-        {/* Staff can't create tasks in the API yet. */}
-        <Button variant="outline" size="pill" className="flex-1 px-4">
-          Add task
-        </Button>
+        {/* Admins only (org.manage). Not wired yet: there's no add-task form in Figma. */}
+        {canAddTask && (
+          <Button variant="outline" size="pill" className="flex-1 px-4">
+            Add task
+          </Button>
+        )}
         <Button
           variant="green"
           size="pill"

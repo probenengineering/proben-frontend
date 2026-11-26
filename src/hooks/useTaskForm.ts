@@ -9,7 +9,7 @@ import {
 } from "@/lib/command-center/task-actions";
 import { isFilled, missingMessage } from "@/lib/task-form";
 import { showToast } from "@/lib/toast";
-import type { TaskAnswers, TaskTableItem } from "@/types/task-table";
+import type { TaskAnswers, TaskField, TaskTableItem } from "@/types/task-table";
 
 // The task form (Figma 60:11826 / 60:11945): answers keyed by field, uploads for file fields,
 // draft autosave 1.5s after the last change (PATCH /tasks/{id}/draft), "Save draft" now, and
@@ -100,9 +100,22 @@ export function useTaskForm(
     setFiles(now.files);
   };
 
-  const upload = async (key: string, file: File) => {
-    if (!TYPES.includes(file.type)) return showToast("error", "Upload a PDF, JPG or PNG file.");
-    if (file.size > MAX_BYTES) return showToast("error", "Files can be up to 10 MB.");
+  /** Limits come from the field (acceptedMimeTypes, maxSizeBytes), else PDF/JPG/PNG up to 10 MB. */
+  const upload = async (field: TaskField, file: File) => {
+    const key = field.key;
+    const types = field.acceptedMimeTypes?.length ? field.acceptedMimeTypes : TYPES;
+    const maxBytes = field.maxSizeBytes ?? MAX_BYTES;
+    if (!types.includes(file.type)) {
+      return showToast(
+        "error",
+        field.acceptedMimeTypes?.length
+          ? "This file type isn't accepted here."
+          : "Upload a PDF, JPG or PNG file.",
+      );
+    }
+    if (file.size > maxBytes) {
+      return showToast("error", `Files can be up to ${Math.floor(maxBytes / (1024 * 1024))} MB.`);
+    }
     setFile(key, { id: "", name: file.name, size: file.size, uploading: true });
     const body = new FormData();
     body.set("file", file);

@@ -27,7 +27,8 @@ export function FlatPageTemplate({
   return (
     <>
       {header}
-      <div className="flex min-h-0 flex-1">
+      {/* Tells the app shell to use its flat style and highlight Notifications (CSS :has()). */}
+      <div data-shell="flat" data-nav="notifications" className="flex min-h-0 flex-1">
         <div
           className={cn(
             "min-w-0 flex-1 flex-col gap-6 overflow-y-auto px-5 py-6",

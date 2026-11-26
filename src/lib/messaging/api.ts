@@ -38,13 +38,23 @@ export async function listConversations(filter: ConversationQuery = {}) {
       if (Array.isArray(value) ? value.length : value) query.set(key, String(value));
     }
     const page = await messaging<ConversationPage>(`/conversations?${query}`);
-    items.push(...page.items);
+    items.push(...page.items.map(normalizeConversation));
     if (!page.hasMore || page.items.length === 0) return items;
   }
 }
 
-export function getConversation(id: string) {
-  return messaging<ApiConversation>(`/conversations/${encodeURIComponent(id)}`);
+export async function getConversation(id: string) {
+  return normalizeConversation(
+    await messaging<ApiConversation>(`/conversations/${encodeURIComponent(id)}`),
+  );
+}
+
+/**
+ * Swagger marks every conversation field optional, and live responses can leave `participants`
+ * out (e.g. announcements and large groups). Default it so screens never crash on a missing list.
+ */
+function normalizeConversation(c: ApiConversation): ApiConversation {
+  return { ...c, participants: Array.isArray(c.participants) ? c.participants : [] };
 }
 
 /** Latest messages, or older (beforeSeq) / newer (afterSeq) ones. Fetching records delivery. */

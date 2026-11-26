@@ -36,7 +36,9 @@ function eventStatus(e: ApiEvent, now: number): ScheduleStatus {
 }
 
 function taskStatus(t: ApiTask): ScheduleStatus {
-  if (t.status === "completed" || t.status === "submitted") return "completed";
+  if (t.status === "completed") return "completed";
+  // Submitted = waiting for review: in progress, never overdue.
+  if (t.status === "submitted") return "in_progress";
   if (t.isOverdue) return "overdue";
   return t.status === "in_progress" ? "in_progress" : "upcoming";
 }

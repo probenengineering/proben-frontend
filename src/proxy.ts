@@ -25,16 +25,58 @@ function refresh(refreshToken: string) {
   return pending;
 }
 
+// Where a signed-in person lands when they open an auth screen.
+const APP_HOME = "/";
+
+// Screens a signed-out person may open: the auth flow. Everything else needs a session.
+const PUBLIC_PATHS = [
+  "/sign-in",
+  "/sign-up",
+  "/verify-email",
+  "/create-password",
+  "/forgot-password",
+  "/invite",
+];
+
+function isPublic(pathname: string) {
+  return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
+/** Signed out: pages go to sign-in, API routes get a 401. */
+function signedOut(request: NextRequest) {
+  if (isPublic(request.nextUrl.pathname)) return NextResponse.next();
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.json({ message: "Sign in to continue." }, { status: 401 });
+  }
+  return NextResponse.redirect(new URL("/sign-in", request.url));
+}
+
+/**
+ * Signed in: opening an auth screen goes straight to the app. Only page loads (GET) are
+ * redirected; server actions posted from those screens still run.
+ */
+function shouldSkipAuthScreen(request: NextRequest) {
+  return request.method === "GET" && isPublic(request.nextUrl.pathname);
+}
+
 export async function proxy(request: NextRequest) {
+  // An optimistic check on the cookies only. Pages and API calls still send the token to the
+  // backend, which rejects a bad one (the data layer then redirects to /sign-in).
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
-  if (!refreshToken || request.cookies.has(ACCESS_COOKIE)) return NextResponse.next();
+  if (request.cookies.has(ACCESS_COOKIE)) {
+    return shouldSkipAuthScreen(request)
+      ? NextResponse.redirect(new URL(APP_HOME, request.url))
+      : NextResponse.next();
+  }
+  if (!refreshToken) return signedOut(request);
 
   const result = await refresh(refreshToken);
+  // Offline or a backend error: let the request through; the refresh is retried next time.
   if (!result) return NextResponse.next();
 
   if (result === "ended") {
     request.cookies.delete(REFRESH_COOKIE);
-    const response = NextResponse.next({ request: { headers: request.headers } });
+    const response = signedOut(request);
     response.cookies.delete(REFRESH_COOKIE);
     return response;
   }
@@ -42,7 +84,9 @@ export async function proxy(request: NextRequest) {
   // Pass the new tokens to this request's page or action, and store them in the browser.
   const cookies = tokenCookies(result);
   for (const cookie of cookies) request.cookies.set(cookie.name, cookie.value);
-  const response = NextResponse.next({ request: { headers: request.headers } });
+  const response = shouldSkipAuthScreen(request)
+    ? NextResponse.redirect(new URL(APP_HOME, request.url))
+    : NextResponse.next({ request: { headers: request.headers } });
   for (const cookie of cookies) response.cookies.set(cookie);
   return response;
 }

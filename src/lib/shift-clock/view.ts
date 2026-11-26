@@ -56,7 +56,13 @@ export interface ClockViewInput {
   openShiftsAvailable: number;
   /** "Fri, 26 Oct · 8:00 AM at Oakridge Group Home", for the Shift complete note. */
   nextShift?: string;
-  on: { clockIn: () => void; takeBreak: () => void; endBreak: () => void; clockOut: () => void };
+  on: {
+    clockIn: () => void;
+    requestManualClockIn: () => void;
+    takeBreak: () => void;
+    endBreak: () => void;
+    clockOut: () => void;
+  };
 }
 
 const EMPTY = "—";
@@ -137,8 +143,11 @@ export function buildClockView(input: ClockViewInput): ShiftClockView {
         stats,
         actions: [
           { label: "Try again", variant: "green", onClick: on.clockIn },
-          // No manual clock-in endpoint yet (see docs/command-center.md).
-          { label: "Request manual clock-in", variant: "outline" },
+          {
+            label: "Request manual clock-in",
+            variant: "outline",
+            onClick: on.requestManualClockIn,
+          },
         ],
         note: { text: failureNote(shift, failure), danger: true },
       };
@@ -151,6 +160,24 @@ export function buildClockView(input: ClockViewInput): ShiftClockView {
       stats,
       actions: [{ label: "Clock in", variant: "green", onClick: on.clockIn }],
       note: now ? { text: startsIn(shift, now) } : undefined,
+    };
+  }
+
+  // No Figma frame: the manual clock-in request is waiting for a manager.
+  if (clock.status === "pending_approval") {
+    return {
+      timer: "00:00",
+      caption: "Not started",
+      ring,
+      status: { label: "Awaiting approval", tone: "warning" },
+      stats: [
+        stat("Clock-in", EMPTY, "empty"),
+        stat("Clock-out", EMPTY, "empty"),
+        shiftStat,
+        stat("Break", allowance),
+      ],
+      actions: [],
+      note: { text: "Your manual clock-in request is waiting for a manager to approve it." },
     };
   }
 

@@ -1,9 +1,7 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
-
 import { ApiError, errorMessage } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import { getAccessToken, sessionEnded } from "@/lib/auth/session";
 import type { ScheduleList } from "@/types/schedule";
 
 import { getTimezone, listEvents, listHomes, listTasks, requestTime } from "./api";
@@ -68,7 +66,7 @@ export async function getScheduleList(): Promise<ScheduleList> {
       })),
     };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) redirect("/sign-in");
+    if (error instanceof ApiError && error.status === 401) sessionEnded();
     return { ...base, error: errorMessage(error) };
   }
 }

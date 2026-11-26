@@ -1,9 +1,7 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
-
 import { ApiError, errorMessage } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import { getAccessToken, sessionEnded } from "@/lib/auth/session";
 import type { TaskTableData, TaskTableItem, TaskTableStatus } from "@/types/task-table";
 
 import { getTimezone, listHomes, listTasks, requestTime } from "./api";
@@ -18,7 +16,9 @@ import type { ApiTask } from "./types";
 const SOON_DAYS = 5;
 
 function statusOf(t: ApiTask): TaskTableStatus {
-  if (t.status === "completed" || t.status === "submitted") return "completed";
+  if (t.status === "completed") return "completed";
+  // Submitted = waiting for review: the In progress bucket, never overdue.
+  if (t.status === "submitted") return "in_progress";
   if (t.isOverdue) return "overdue";
   if (t.status === "needs_attention") return "needs_attention";
   return t.status === "in_progress" ? "in_progress" : "upcoming";
@@ -101,6 +101,8 @@ export async function getTaskTable(): Promise<TaskTableData> {
           dueAt: t.dueAt ? Date.parse(t.dueAt) : Number.POSITIVE_INFINITY,
           createdAt: t.createdAt ? Date.parse(t.createdAt) : 0,
           status,
+          inReview: t.status === "submitted",
+          feedback: (t.status === "needs_attention" && t.feedback) || undefined,
           ...completion(t, tz),
           version: t.version,
           assignedDate: t.createdAt ? longDate(dayKey(t.createdAt, tz)) : undefined,
@@ -125,6 +127,7 @@ export async function getTaskTable(): Promise<TaskTableData> {
             // No required form fields: finish from the panel (submitTaskAction).
             canComplete:
               status !== "completed" &&
+              t.status !== "submitted" &&
               t.version !== undefined &&
               !(t.fields ?? []).some((f) => f.required),
           },
@@ -133,7 +136,7 @@ export async function getTaskTable(): Promise<TaskTableData> {
     });
     return { tasks, loadedAt: now };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) redirect("/sign-in");
+    if (error instanceof ApiError && error.status === 401) sessionEnded();
     return { tasks: [], error: errorMessage(error) };
   }
 }

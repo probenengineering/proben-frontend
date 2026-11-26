@@ -62,11 +62,14 @@ export function useShiftClock(
   const [confirmingIn, setConfirmingIn] = useState(false);
   const [confirmingOut, setConfirmingOut] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The position sent with the refused clock-in, reused for a manual clock-in request.
+  const [lastLocation, setLastLocation] = useState<ClockInLocation | undefined>();
   const now = useSyncExternalStore(subscribeTick, readNow, () => 0);
 
   const run = async (action: ClockAction, location?: ClockInLocation) => {
     if (!shift || busy) return;
     setBusy(true);
+    if (action === "clock-in") setLastLocation(location);
     try {
       const result = await runClockAction(action, shift, location);
       if (result.ok) {
@@ -77,12 +80,13 @@ export function useShiftClock(
         setFailure({
           reason: result.reason,
           distanceMeters:
-            location && home
+            result.distanceMeters ??
+            (location && home
               ? distanceMeters(
                   [location.latitude, location.longitude],
                   [shift.latitude!, shift.longitude!],
                 )
-              : undefined,
+              : undefined),
         });
       } else {
         showToast("error", result.error);
@@ -101,6 +105,7 @@ export function useShiftClock(
     nextShift,
     on: {
       clockIn: () => setConfirmingIn(true),
+      requestManualClockIn: () => void run("manual-clock-in", lastLocation),
       takeBreak: () => void run("break"),
       endBreak: () => void run("resume"),
       clockOut: () => setConfirmingOut(true),

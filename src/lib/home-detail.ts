@@ -25,9 +25,8 @@ import { getAssignedHomes } from "./homes";
 
 // A home's page (Figma 60:13792 overview, 60:13930 team, 60:14124 schedule, 60:14244 updates):
 // the home from GET /homes, its team (GET /homes/{id}/team, always: names for updates), and the
-// open tab's data. Team and schedule responses aren't documented, so they're read defensively:
-// common list keys (items / members / staff / shifts) and field names; anything missing is left
-// out rather than guessed.
+// open tab's data. Team and schedule are read defensively (they changed shape between backend
+// drops); anything missing is left out rather than guessed.
 
 export type HomeTab = "overview" | "team" | "schedule" | "updates" | "resources";
 
@@ -74,36 +73,62 @@ function readTeam(data: unknown, meId: string | undefined, tz: string, now: numb
         name,
         role: str(m.role) ?? str(m.jobTitle) ?? str(m.title) ?? str(m.assignmentRole),
         phone: str(m.phone) ?? str(m.phoneNumber),
-        isYou:
-          m.isYou === true ||
-          m.isCurrentUser === true ||
-          (!!meId && (id === meId || str(m.staffId) === meId)),
+        isYou: m.isMe === true || (!!meId && (id === meId || str(m.staffId) === meId)),
         shift,
       },
     ];
   });
 }
 
+/**
+ * GET /homes/{id}/schedule: `coverage` groups the one-person shift slots in `items` by time and
+ * role (assigned vs required staff). Older responses without it fall back to one row per slot.
+ */
 function readShifts(data: unknown, tz: string, now: number): HomeShift[] {
-  return list(data, ["items", "shifts"]).flatMap((s): HomeShift[] => {
-    const startsAt = str(s.startsAt);
-    const endsAt = str(s.endsAt);
-    if (!startsAt || !endsAt || s.status === "cancelled") return [];
-    const people = list(s, ["staff", "assignees", "members", "assignments"]);
-    const staff = people
-      .map((p) => nameOf(p) ?? nameOf(p.staff as Raw))
-      .filter((n): n is string => !!n);
+  const slots = list(data, ["items", "shifts"]).filter((s) => s.status !== "cancelled");
+  const mine = new Set(slots.filter((s) => s.isMine === true).map((s) => str(s.id)));
+  const coverage = list(data, ["coverage"]);
+  const rows = coverage.length
+    ? coverage.map((c) => {
+        const ids = Array.isArray(c.shiftIds) ? (c.shiftIds as string[]) : [];
+        const slot = slots.find((s) => ids.includes(str(s.id) ?? ""));
+        return {
+          id: ids[0] ?? `${str(c.startsAt)}-${str(c.role) ?? ""}`,
+          startsAt: str(c.startsAt),
+          endsAt: str(c.endsAt),
+          title: str(c.role) ?? str(slot?.title),
+          staff: list(c, ["staff"]).map(nameOf),
+          filled: num(c.assignedStaff),
+          needed: num(c.requiredStaff),
+          mine: ids.some((id) => mine.has(id)),
+        };
+      })
+    : slots.map((s) => ({
+        id: str(s.id),
+        startsAt: str(s.startsAt),
+        endsAt: str(s.endsAt),
+        title: str(s.title) ?? str(s.role),
+        staff: [nameOf(s.staff as Raw | undefined)],
+        filled: s.staff ? 1 : 0,
+        needed: num(s.requiredStaff),
+        mine: s.isMine === true,
+      }));
+
+  return rows.flatMap((r): HomeShift[] => {
+    const { startsAt, endsAt } = r;
+    if (!startsAt || !endsAt) return [];
+    const staff = r.staff.filter((n): n is string => !!n);
     const start = Date.parse(startsAt);
     return [
       {
-        id: str(s.id) ?? startsAt,
+        id: r.id ?? startsAt,
         day: dayKey(startsAt, tz),
         time: `${formatTime(startsAt, tz)} – ${formatTime(endsAt, tz)}`,
-        title: str(s.title) ?? str(s.name),
+        title: r.title,
         staff,
-        filled: num(s.filledCount) ?? staff.length,
-        needed: num(s.requiredStaff) ?? num(s.capacity) ?? num(s.slots),
-        mine: s.isMine === true || s.assignedToMe === true,
+        filled: r.filled ?? staff.length,
+        needed: r.needed,
+        mine: r.mine,
         inProgress: start <= now && now < Date.parse(endsAt),
       },
     ];
@@ -149,13 +174,14 @@ export async function getHomeDetail(
   if (tab === "updates") {
     const page = await listHomeUpdates(id).catch(() => null);
     result.updates = (page?.items ?? []).map((u) => {
+      // createdBy comes with the update; the team list is the fallback for older ones.
       const author = team.find((m) => m.id === u.createdById);
       return {
         id: u.id,
         title: u.title,
         body: u.body,
-        author: author?.name ?? "Home team",
-        authorRole: author?.role,
+        author: u.createdBy?.name ?? author?.name ?? "Home team",
+        authorRole: u.createdBy?.role ?? author?.role,
         when: when(u.createdAt, tz, now),
         requiresAck: u.requiresAck,
         acknowledged: u.acknowledgedAt

@@ -29,7 +29,9 @@ export function TasksTemplate({
   return (
     <>
       {header}
+      {/* Highlights Home in the sidebar (CSS :has(), so the shell needn't read the URL). */}
       <div
+        data-nav="home"
         className={cn(
           "flex min-h-0 flex-1 flex-col overflow-y-auto py-5",
           dense ? "gap-2" : "gap-5",

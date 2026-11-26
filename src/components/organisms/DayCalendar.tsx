@@ -14,17 +14,19 @@ import { ScheduleDetailPanel } from "./ScheduleDetailPanel";
 
 // Day view (Figma 60:8532; empty 60:8851): toolbar, then the timeline (date + "Today" pill +
 // count, 72px hour rows with half-hour lines, event cards, red now line) beside DaySidebar.
-// Clicking an event opens its quick peek → detail panel. "Add a task" does nothing yet (staff
-// can't create tasks). Below lg the sidebar stacks underneath.
+// Clicking an event opens its quick peek → detail panel. "Add a task" shows only with
+// `canAddTask` (org.manage) and isn't wired yet. Below lg the sidebar stacks underneath.
 const HOUR = 72;
 const hourLabel = (hour: number) => `${hour % 12 || 12} ${hour < 12 ? "AM" : "PM"}`;
 
 export interface DayCalendarProps {
   base: string;
   data: DayCalendarData;
+  /** Show "Add a task" on an empty day: the person may assign tasks (org.manage). */
+  canAddTask?: boolean;
 }
 
-export function DayCalendar({ base, data }: DayCalendarProps) {
+export function DayCalendar({ base, data, canAddTask = false }: DayCalendarProps) {
   const actions = useScheduleActions();
   const hours = Array.from(
     { length: data.endHour - data.startHour + 1 },
@@ -143,10 +145,12 @@ export function DayCalendar({ base, data }: DayCalendarProps) {
                 </span>
                 <p className="type-ui-16 font-semibold text-slate-900">No tasks on this day</p>
                 <p className="type-ui-13-20 text-slate-500">Nothing is scheduled for {longDate}.</p>
-                {/* Staff can't create tasks in the API yet. */}
-                <Button variant="green" size="pill" className="px-4">
-                  Add a task
-                </Button>
+                {/* Admins only (org.manage). Not wired yet: there's no add-task form in Figma. */}
+                {canAddTask && (
+                  <Button variant="green" size="pill" className="px-4">
+                    Add a task
+                  </Button>
+                )}
               </div>
             )}
           </div>

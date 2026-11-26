@@ -10,7 +10,8 @@ import type { ApiAttendance } from "./types";
 
 /** `reason` is the API's details.reason (e.g. LOCATION_OUTSIDE_HOME) when it sent one. */
 export type AttendanceResult =
-  { ok: true; data: ApiAttendance } | { ok: false; error: string; reason?: string };
+  | { ok: true; data: ApiAttendance }
+  | { ok: false; error: string; reason?: string; distanceMeters?: number };
 
 // The API's details.reason (400/409) as plain words; anything else uses the usual message.
 const REASONS: Record<string, string> = {
@@ -37,11 +38,19 @@ async function run(call: () => Promise<ApiAttendance>): Promise<AttendanceResult
   try {
     return { ok: true, data: await call() };
   } catch (error) {
-    const reason =
+    const details =
       error instanceof ApiError
-        ? (error.details as { reason?: string } | undefined)?.reason
+        ? (error.details as { reason?: string; distanceMeters?: number } | undefined)
         : undefined;
-    return { ok: false, error: clockError(error), ...(reason && { reason }) };
+    return {
+      ok: false,
+      error: clockError(error),
+      ...(details?.reason && { reason: details.reason }),
+      // LOCATION_OUTSIDE_HOME: how far the server measured the device from the home.
+      ...(typeof details?.distanceMeters === "number" && {
+        distanceMeters: details.distanceMeters,
+      }),
+    };
   }
 }
 
@@ -59,6 +68,23 @@ export async function clockInAction(shiftId: string, location?: ClockInLocation)
     body.accuracyMeters = Number(location.accuracyMeters);
   }
   return run(() => commandCenter<ApiAttendance>("/attendance/clock-in", { body }));
+}
+
+/**
+ * "Request manual clock-in" after a location refusal (POST /attendance/manual-requests). Nothing
+ * is clocked until a provider administrator approves; returns the attendance (pending_approval).
+ */
+export async function requestManualClockInAction(shiftId: string, location?: ClockInLocation) {
+  const body: Record<string, unknown> = { shiftId: String(shiftId) };
+  if (location) {
+    body.latitude = Number(location.latitude);
+    body.longitude = Number(location.longitude);
+    body.accuracyMeters = Number(location.accuracyMeters);
+  }
+  return run(async () => {
+    await commandCenter("/attendance/manual-requests", { body });
+    return commandCenter<ApiAttendance>("/attendance");
+  });
 }
 
 export async function startBreakAction() {

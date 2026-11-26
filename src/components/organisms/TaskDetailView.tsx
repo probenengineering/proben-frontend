@@ -23,6 +23,7 @@ import type { TaskTableItem } from "@/types/task-table";
 // Rows the API has no data for yet (assigned by, required action, duration, instructions) are
 // left out. Overdue (60:12169): a red alert on top, "Was due Oct 22, 2026" and a red due date.
 // A started task with a saved draft (60:12297) shows the required-fields progress card.
+// No Figma frame: a task sent back shows the reviewer's feedback; one in review has no action.
 export interface TaskDetailViewProps {
   task: TaskTableItem;
   files: FileInfo[];
@@ -50,7 +51,8 @@ export function TaskDetailView({
   onComplete,
   onRetryFile,
 }: TaskDetailViewProps) {
-  const done = task.status === "completed";
+  // In review: the staff member's part is done until the manager approves or sends it back.
+  const done = task.status === "completed" || task.inReview;
   const overdue = !done && task.dueTone === "overdue";
   const progress = requiredProgress(task.fields, task.answers);
   const rows = [
@@ -84,6 +86,8 @@ export function TaskDetailView({
             message={`This task was due ${task.dueDate?.split(",")[0]}. Complete it as soon as possible to stay compliant.`}
           />
         )}
+
+        {task.feedback && <AlertBanner title="Changes requested" message={task.feedback} />}
 
         <div className="flex flex-col gap-2.5">
           <SheetTitle className="type-ui-22 font-semibold text-slate-900">{task.title}</SheetTitle>

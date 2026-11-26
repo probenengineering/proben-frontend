@@ -25,6 +25,7 @@ export interface ClockTotals {
  */
 export function fromAttendance(api: ApiAttendance, receivedAt: number): ShiftClock {
   const record = api.attendance;
+  if (api.status === "pending_approval") return { ...EMPTY_CLOCK, status: "pending_approval" };
   if (!record || api.status === "not_clocked_in") return EMPTY_CLOCK;
   const serverNow = Date.parse(api.serverTime);
   const skew = serverNow - receivedAt;

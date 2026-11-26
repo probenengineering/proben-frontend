@@ -63,7 +63,9 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     };
     const signOut = () => {
       socket?.disconnect();
-      router.push("/sign-in");
+      // A full page load: /sign-out is a route handler that clears the HttpOnly cookies.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign("/sign-out");
     };
     const confirmDelivered = (message: ApiMessage) => {
       // Includes your own messages from other devices; confirming those is harmless.

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { DashboardHeader, HomeDetail } from "@/components/organisms";
-import { AppShell, TasksTemplate } from "@/components/templates";
+import { ContentSkeleton, DashboardHeader, HomeDetail } from "@/components/organisms";
+import { TasksTemplate } from "@/components/templates";
 
 export const metadata: Metadata = {
   title: "Home | Proben",
@@ -24,13 +24,11 @@ export default async function HomePage({
   searchParams: Search;
 }) {
   return (
-    <AppShell activeNav="home">
-      <TasksTemplate header={<DashboardHeader />}>
-        <Suspense>
-          <HomeDetailFor params={params} searchParams={searchParams} />
-        </Suspense>
-      </TasksTemplate>
-    </AppShell>
+    <TasksTemplate header={<DashboardHeader />}>
+      <Suspense fallback={<ContentSkeleton label="Loading home" rows={4} />}>
+        <HomeDetailFor params={params} searchParams={searchParams} />
+      </Suspense>
+    </TasksTemplate>
   );
 }
 

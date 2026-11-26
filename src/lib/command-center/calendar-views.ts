@@ -1,9 +1,7 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
-
 import { ApiError, errorMessage } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import { getAccessToken, sessionEnded } from "@/lib/auth/session";
 import { addMonths, monthGridKeys, monthStart } from "@/lib/calendar-view";
 import type { DayCalendarData, DayEvent, MonthCalendarData, MonthCell } from "@/types/calendar";
 
@@ -26,7 +24,7 @@ const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const LOOKAHEAD_DAYS = 31;
 
 function handle(error: unknown) {
-  if (error instanceof ApiError && error.status === 401) redirect("/sign-in");
+  if (error instanceof ApiError && error.status === 401) sessionEnded();
   return errorMessage(error);
 }
 

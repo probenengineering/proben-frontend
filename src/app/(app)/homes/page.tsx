@@ -7,7 +7,7 @@ import {
   DashboardTabs,
   HomesSkeleton,
 } from "@/components/organisms";
-import { AppShell, TasksTemplate } from "@/components/templates";
+import { TasksTemplate } from "@/components/templates";
 import { DASHBOARD_TABS } from "@/lib/sample-dashboard";
 
 export const metadata: Metadata = {
@@ -21,15 +21,13 @@ export default function HomesPage({
   searchParams: Promise<{ view?: string | string[] }>;
 }) {
   return (
-    <AppShell activeNav="home">
-      <TasksTemplate
-        header={<DashboardHeader />}
-        tabs={<DashboardTabs tabs={DASHBOARD_TABS} selected="My Homes" />}
-      >
-        <Suspense fallback={<HomesSkeleton />}>
-          <AssignedHomes searchParams={searchParams} />
-        </Suspense>
-      </TasksTemplate>
-    </AppShell>
+    <TasksTemplate
+      header={<DashboardHeader />}
+      tabs={<DashboardTabs tabs={DASHBOARD_TABS} selected="My Homes" />}
+    >
+      <Suspense fallback={<HomesSkeleton />}>
+        <AssignedHomes searchParams={searchParams} />
+      </Suspense>
+    </TasksTemplate>
   );
 }

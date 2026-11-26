@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 
 import { EmptyPanel } from "@/components/molecules";
+import { PERMISSIONS } from "@/lib/auth/permissions";
 import { getAccessToken } from "@/lib/auth/session";
+import { userCan } from "@/lib/auth/user";
 import { type CalendarParams, parseCalendarParams } from "@/lib/calendar-view";
 import { getTimezone, requestTime } from "@/lib/command-center/api";
 import { getDayCalendar, getMonthCalendar } from "@/lib/command-center/calendar-views";
@@ -28,13 +30,15 @@ export async function MyTaskCalendar({ base, searchParams }: MyTaskCalendarProps
   const now = await requestTime();
   const today = dayKey(now, tz);
   const { view, date } = parseCalendarParams(await searchParams, today);
+  // "Add task" is for people who may assign tasks (POST /admin/tasks needs org.manage).
+  const canAddTask = await userCan(PERMISSIONS.manageOrg);
 
   if (view === "day") {
     const data = await getDayCalendar(date);
     return (
       <>
         {data.error && <EmptyPanel message={data.error} />}
-        <DayCalendar base={base} data={data} />
+        <DayCalendar base={base} data={data} canAddTask={canAddTask} />
       </>
     );
   }
@@ -43,7 +47,7 @@ export async function MyTaskCalendar({ base, searchParams }: MyTaskCalendarProps
     return (
       <>
         {data.error && <EmptyPanel message={data.error} />}
-        <MonthCalendar base={base} date={date} data={data} />
+        <MonthCalendar base={base} date={date} data={data} canAddTask={canAddTask} />
       </>
     );
   }
@@ -52,7 +56,7 @@ export async function MyTaskCalendar({ base, searchParams }: MyTaskCalendarProps
       key={date}
       fallback={<WeekCalendar {...weekShell(date, now, tz)} base={base} date={date} loading />}
     >
-      <WeekCalendarData base={base} date={date} />
+      <WeekCalendarData base={base} date={date} canAddTask={canAddTask} />
     </Suspense>
   );
 }
