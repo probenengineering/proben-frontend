@@ -3,7 +3,10 @@
 import { useState, useSyncExternalStore } from "react";
 
 import type { ApiAttendance } from "@/lib/command-center/types";
-import type { ClockInLocation } from "@/lib/command-center/attendance-actions";
+import {
+  requestOvertimeAction,
+  type ClockInLocation,
+} from "@/lib/command-center/attendance-actions";
 import { formatTime } from "@/lib/command-center/time";
 import { deriveTotals, distanceMeters, fromAttendance } from "@/lib/shift-clock/derive";
 import { formatDuration, formatMinutes } from "@/lib/shift-clock/format";
@@ -96,6 +99,23 @@ export function useShiftClock(
     }
   };
 
+  /** "Request approval" in the Overtime state; the button then shows "Approval requested". */
+  const requestOvertime = async () => {
+    if (!clock.attendanceId || busy) return;
+    setBusy(true);
+    try {
+      const result = await requestOvertimeAction(clock.attendanceId);
+      if (result.ok) {
+        setClock(fromAttendance(result.data, Date.now()));
+        showToast("success", "Overtime approval requested.");
+      } else {
+        showToast("error", result.error);
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const view = buildClockView({
     clock,
     shift,
@@ -106,6 +126,7 @@ export function useShiftClock(
     on: {
       clockIn: () => setConfirmingIn(true),
       requestManualClockIn: () => void run("manual-clock-in", lastLocation),
+      requestOvertime: () => void requestOvertime(),
       takeBreak: () => void run("break"),
       endBreak: () => void run("resume"),
       clockOut: () => setConfirmingOut(true),

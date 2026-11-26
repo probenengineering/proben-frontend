@@ -63,6 +63,8 @@ export interface ApiAttendance {
     breakSeconds?: number;
     shiftEndsAt?: string;
     breakAllowanceMinutes?: number;
+    /** Overtime approval for this session (POST /attendance/{id}/overtime-requests). */
+    overtimeRequest?: "pending" | "approved" | "rejected" | null;
   } | null;
   serverTime: string;
   /** Live totals as of serverTime (missing when not clocked in). */

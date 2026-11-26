@@ -99,6 +99,23 @@ export async function clockOutAction() {
   return run(() => commandCenter<ApiAttendance>("/attendance/clock-out", { method: "POST" }));
 }
 
+/**
+ * "Request approval" in the Overtime state (POST /attendance/{id}/overtime-requests). Returns the
+ * re-read attendance, whose record now carries overtimeRequest: "pending".
+ */
+export async function requestOvertimeAction(attendanceId: string) {
+  return run(async () => {
+    await commandCenter(
+      `/attendance/${encodeURIComponent(String(attendanceId))}/overtime-requests`,
+      {
+        method: "POST",
+        body: {},
+      },
+    );
+    return commandCenter<ApiAttendance>("/attendance");
+  });
+}
+
 /** Re-reads the clock, e.g. after a failed action left the UI unsure. */
 export async function refreshAttendanceAction() {
   return run(() => commandCenter<ApiAttendance>("/attendance"));

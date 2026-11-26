@@ -59,6 +59,7 @@ export interface ClockViewInput {
   on: {
     clockIn: () => void;
     requestManualClockIn: () => void;
+    requestOvertime: () => void;
     takeBreak: () => void;
     endBreak: () => void;
     clockOut: () => void;
@@ -91,6 +92,30 @@ function failureNote(shift: ScheduledShift, failure: ClockInFailure) {
     return `Location not verified — turn on location to clock in at ${shift.homeName}.`;
   }
   return `Location not verified — you need to be at ${shift.homeName} to clock in.`;
+}
+
+const OVERTIME_BUTTON = {
+  pending: "Approval requested",
+  approved: "Overtime approved",
+  rejected: "Request declined",
+} as const;
+
+function overtimeButton(
+  request: ShiftClock["overtimeRequest"],
+  onRequest: () => void,
+): ClockButtonView {
+  return request
+    ? { label: OVERTIME_BUTTON[request], variant: "muted" }
+    : { label: "Request approval", variant: "outline", onClick: onRequest };
+}
+
+function overtimeNote(request: ShiftClock["overtimeRequest"], over: string) {
+  const past = `You’re ${over} past your scheduled end time.`;
+  if (request === "pending")
+    return { text: `${past} Waiting for a manager to approve.`, danger: true };
+  if (request === "approved") return { text: `Overtime approved. ${past}` };
+  if (request === "rejected") return { text: `Overtime declined. ${past}`, danger: true };
+  return { text: past, danger: true };
 }
 
 export function buildClockView(input: ClockViewInput): ShiftClockView {
@@ -241,9 +266,10 @@ export function buildClockView(input: ClockViewInput): ShiftClockView {
         shiftStat,
         breakStat,
       ],
-      // No overtime approval endpoint yet.
-      actions: [{ label: "Request approval", variant: "outline" }, clockOut],
-      note: { text: `You’re ${over} past your scheduled end time.`, danger: true },
+      // Figma: "Request approval" + Clock out. After asking, the button shows where the request
+      // stands (no Figma frame: muted, like "Break used") and the note says so.
+      actions: [overtimeButton(clock.overtimeRequest, on.requestOvertime), clockOut],
+      note: overtimeNote(clock.overtimeRequest, over),
     };
   }
 

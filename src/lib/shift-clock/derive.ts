@@ -50,6 +50,8 @@ export function fromAttendance(api: ApiAttendance, receivedAt: number): ShiftClo
     clockedOutAt: record.clockedOutAt ? Date.parse(record.clockedOutAt) - skew : null,
     breakMs,
     syncedAt: receivedAt,
+    attendanceId: record.id,
+    overtimeRequest: record.overtimeRequest ?? null,
   };
 }
 

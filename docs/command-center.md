@@ -22,7 +22,8 @@ in this pass, with the frontend now using them:
 - **R40d:** contact fields are documented.
 - **R41:** `contentPath` is documented.
 
-Also wired: `pending_approval` attendance with `POST /attendance/manual-requests` ("Request manual
+Also wired: "Request approval" in the Overtime clock state (`POST /attendance/{id}/overtime-requests`,
+shown afterwards from `attendance.overtimeRequest`), `pending_approval` attendance with `POST /attendance/manual-requests` ("Request manual
 clock-in"), `GET /homes/{id}/schedule` `coverage`, team `isMe`, task field types `date` and `phone`
 with per-field file limits, the typed notification `destination.type`, and the slim `GET /search`
 items.
@@ -91,7 +92,7 @@ signing people out, so a seed rerun no longer logs everyone out.
 - [ ] **R44. Rejected manual clock-in.** After "Request manual clock-in" the card shows "Awaiting
       approval" while `GET /attendance` returns `pending_approval`. Please confirm what the status
       becomes after a rejection: back to `not_clocked_in`, with `manualClockInRequest.status:
-    "rejected"` and `feedback`? The UI would then show the feedback and offer Try again.
+  "rejected"` and `feedback`? The UI would then show the feedback and offer Try again.
 - [ ] **R45. File scan status.** `POST /api/files` returns `status: "pending_scan"`, and submit
       needs clean files. The UI doesn't poll yet. Please say how long scans usually take, and
       whether `POST /tasks/{id}/submit` returns a specific `code` while a file is still being
@@ -123,7 +124,7 @@ signing people out, so a seed rerun no longer logs everyone out.
 - **Provider choice at sign-in:** `/auth/login` and `/auth/password/recovery` accept
   `providerSlug`. No screen for it yet.
 - **Other new endpoints with no screen yet:** `POST /events/{id}/reopen`,
-  `PATCH /events|tasks/{id}/checklist/{itemId}`, `POST /attendance/{id}/overtime-requests` and
+  `PATCH /events|tasks/{id}/checklist/{itemId}` and
   `/time-off`.
 
 ## Not backend: open for product and design

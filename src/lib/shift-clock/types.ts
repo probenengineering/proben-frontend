@@ -15,6 +15,10 @@ export interface ShiftClock {
   breakMs: number;
   /** When the record was read; a running break keeps counting from here. */
   syncedAt: number;
+  /** The attendance record's id, for the overtime approval request. */
+  attendanceId: string | null;
+  /** Overtime approval for this session, once requested. */
+  overtimeRequest: "pending" | "approved" | "rejected" | null;
 }
 
 /** The scheduled shift the clock runs against. */
@@ -52,4 +56,6 @@ export const EMPTY_CLOCK: ShiftClock = {
   clockedOutAt: null,
   breakMs: 0,
   syncedAt: 0,
+  attendanceId: null,
+  overtimeRequest: null,
 };
