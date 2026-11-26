@@ -4,6 +4,7 @@ export { Toast, type ToastProps } from "./Toast";
 export { OtpInput, type OtpInputProps } from "./OtpInput";
 export { LegalNotice, type LegalNoticeProps } from "./LegalNotice";
 export { SidebarMenuItem, type SidebarMenuItemProps } from "./SidebarMenuItem";
+export { NotificationBell, type NotificationBellProps } from "./NotificationBell";
 export { AvatarPair, type AvatarPairProps } from "./AvatarPair";
 export { ChatListItem, type ChatListItemProps } from "./ChatListItem";
 export { ChatSection, type ChatSectionProps } from "./ChatSection";

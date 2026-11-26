@@ -1,6 +1,4 @@
-import Link from "next/link";
-
-import { Icon } from "@/components/atoms";
+import { NotificationBell } from "@/components/molecules";
 
 import { CurrentUserBadge } from "./CurrentUserBadge";
 import { GlobalSearchTrigger } from "./GlobalSearchTrigger";
@@ -28,9 +26,7 @@ export function DashboardHeader({ greeting, wideSearch }: DashboardHeaderProps) 
             {greeting ?? <UserGreeting />}
           </h1>
         </div>
-        <Link href="/notifications" aria-label="Notifications" className="lg:hidden">
-          <Icon name="notification-bing" />
-        </Link>
+        <NotificationBell className="lg:hidden" />
       </div>
 
       <div className="px-5 pb-4 lg:absolute lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:p-0">
@@ -38,9 +34,7 @@ export function DashboardHeader({ greeting, wideSearch }: DashboardHeaderProps) 
       </div>
 
       <div className="hidden items-center gap-5 lg:flex">
-        <Link href="/notifications" aria-label="Notifications">
-          <Icon name="notification-bing" />
-        </Link>
+        <NotificationBell />
         <span className="h-3 w-0.5 bg-white-700" />
         <CurrentUserBadge />
       </div>

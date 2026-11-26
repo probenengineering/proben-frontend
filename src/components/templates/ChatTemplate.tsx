@@ -45,7 +45,6 @@ export function ChatTemplate({ screen, aside }: ChatTemplateProps) {
             avatar={avatarFor(conversation.type === "direct" ? other : conversation.id, title)}
             profileHref={conversation.type === "direct" ? `${href}/profile` : href}
             canAttach={screen.can.attach}
-            canCall={screen.can.call}
           >
             <MessageThread />
           </Conversation>

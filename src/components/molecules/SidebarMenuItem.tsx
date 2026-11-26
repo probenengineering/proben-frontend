@@ -1,15 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { Icon, type IconName } from "@/components/atoms";
+import { Icon, type IconName, LinkPendingTint } from "@/components/atoms";
 import { cn } from "@/lib/utils";
 
 // Figma component "Sidebar / menu item". Active item: medium grey-900 label on a white-500
-// background, or peach (avatar-orange, Figma "Primary/50") with activeTone="peach" (Home/Tasks).
+// background, or peach (avatar-orange, Figma "Primary/50") with activeTone="peach".
 // collapsed: icon only, centred (collapsed 82px sidebar); the label becomes the accessible name.
-// href: renders the item as a link (e.g. Messages → /messages).
-// activeFor: highlights the item whenever the page carries a matching `data-nav` marker (set by
-// the page's template), with CSS only, so the sidebar can stay mounted in the shared layout.
+// href: renders the item as a link (e.g. Messages → /messages); it tints while its page loads.
+// activePaths: the item is active while the URL is one of these paths or below it ("/" matches
+// only the home page itself), so the current route is always highlighted.
 export interface SidebarMenuItemProps {
   icon: IconName;
   label: string;
@@ -22,23 +25,14 @@ export interface SidebarMenuItemProps {
   collapsed?: boolean;
   /** Makes the item a link, e.g. "/messages". */
   href?: string;
-  /** Active when the page has `data-nav="<value>"` (peach style). */
-  activeFor?: "home" | "notifications";
+  /** Routes that make this item active, e.g. ["/messages"]. */
+  activePaths?: string[];
 }
 
-// Literal class names so Tailwind generates them. `in-[…]` also reaches the ☰ drawer (a portal).
-const ACTIVE_FOR = {
-  home: {
-    item: "in-[body:has([data-nav=home])]:border in-[body:has([data-nav=home])]:border-avatar-orange in-[body:has([data-nav=home])]:bg-avatar-orange",
-    label:
-      "in-[body:has([data-nav=home])]:font-medium in-[body:has([data-nav=home])]:text-grey-900",
-  },
-  notifications: {
-    item: "in-[body:has([data-nav=notifications])]:border in-[body:has([data-nav=notifications])]:border-avatar-orange in-[body:has([data-nav=notifications])]:bg-avatar-orange",
-    label:
-      "in-[body:has([data-nav=notifications])]:font-medium in-[body:has([data-nav=notifications])]:text-grey-900",
-  },
-} as const;
+function matches(pathname: string, path: string) {
+  if (path === "/") return pathname === "/";
+  return pathname === path || pathname.startsWith(`${path}/`);
+}
 
 export function SidebarMenuItem({
   icon,
@@ -49,15 +43,21 @@ export function SidebarMenuItem({
   trailing,
   collapsed,
   href,
-  activeFor,
+  activePaths,
 }: SidebarMenuItemProps) {
+  const pathname = usePathname();
+  const isActive = active || (activePaths?.some((path) => matches(pathname, path)) ?? false);
+
   const className = cn(
     // Figma radius 4px; no radius token yet.
-    "flex w-full items-center gap-1 overflow-clip rounded-[4px] px-4 py-3",
+    // Hover: the white-500 fill of the grey active state (no Figma hover frame).
+    "flex w-full cursor-pointer items-center gap-1 overflow-clip rounded-[4px] px-4 py-3 transition-colors duration-150",
     collapsed && "justify-center",
-    active &&
-      (activeTone === "peach" ? "border border-avatar-orange bg-avatar-orange" : "bg-white-500"),
-    activeFor && ACTIVE_FOR[activeFor].item,
+    isActive
+      ? activeTone === "peach"
+        ? "border border-avatar-orange bg-avatar-orange"
+        : "bg-white-500"
+      : "hover:bg-white-500",
   );
   const ariaLabel = collapsed ? label : undefined;
 
@@ -69,8 +69,7 @@ export function SidebarMenuItem({
           <span
             className={cn(
               "type-paragraph-sm",
-              active ? "font-medium text-grey-900" : "text-grey-700",
-              activeFor && ACTIVE_FOR[activeFor].label,
+              isActive ? "font-medium text-grey-900" : "text-grey-700",
             )}
           >
             {label}
@@ -88,7 +87,13 @@ export function SidebarMenuItem({
   );
 
   return href ? (
-    <Link href={href} aria-label={ariaLabel} className={className}>
+    <Link
+      href={href}
+      aria-label={ariaLabel}
+      aria-current={isActive ? "page" : undefined}
+      className={cn("relative isolate", className)}
+    >
+      {!isActive && <LinkPendingTint />}
       {content}
     </Link>
   ) : (

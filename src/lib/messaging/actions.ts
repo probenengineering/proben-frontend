@@ -140,3 +140,11 @@ export async function getSocketTicket(): Promise<ActionResult<{ url: string; tic
     return { url: apiBase(), ticket };
   });
 }
+
+/** Unread messages across all chats (GET /unread-count); 0 when signed out or it can't load. */
+export async function getUnreadMessageCount(): Promise<number> {
+  if (!(await getAccessToken())) return 0;
+  return messaging<{ messages: number }>("/unread-count")
+    .then((r) => Number(r.messages) || 0)
+    .catch(() => 0);
+}

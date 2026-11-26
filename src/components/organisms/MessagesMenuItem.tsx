@@ -25,6 +25,8 @@ export async function MessagesMenuItem({ collapsed }: MessagesMenuItemProps) {
       icon="messages"
       label="Messages"
       href="/messages"
+      activePaths={["/messages"]}
+      activeTone="peach"
       badge={count > 0 ? (count > 99 ? "99+" : String(count)) : undefined}
       collapsed={collapsed}
     />

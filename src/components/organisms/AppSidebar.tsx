@@ -8,10 +8,13 @@ import { CurrentUserCard } from "./CurrentUserCard";
 import { MessagesMenuItem } from "./MessagesMenuItem";
 
 // Figma component "Sidebar": 272px with labels, or 82px icons-only when collapsed (chat open).
-// The main item for the current page is highlighted from the page's `data-nav` marker (peach,
-// Figma: Home on the Tasks screens; none on the home page and chats, matching those frames).
+// The item for the current route is highlighted peach (Figma: Home on the Tasks screens): Home
+// for the dashboard and its tabs, Messages for chats, Notifications for the inbox.
 // Inside the flat shell (Notifications frames) it turns white and shows a search field (not wired
-// to anything yet). Both are CSS-only, so nothing here reads the URL.
+// to anything yet), picked with CSS :has().
+// The dashboard and its tabs (Overview, Today's Schedule, My Tasks, My Homes).
+const HOME_PATHS = ["/", "/schedule", "/tasks", "/homes"];
+
 export interface AppSidebarProps {
   collapsed?: boolean;
 }
@@ -47,13 +50,20 @@ export function AppSidebar({ collapsed }: AppSidebarProps) {
                 icon="home"
                 label="Home"
                 href="/"
-                activeFor="home"
+                activePaths={HOME_PATHS}
                 activeTone="peach"
                 {...item}
               />
               <Suspense
                 fallback={
-                  <SidebarMenuItem icon="messages" label="Messages" href="/messages" {...item} />
+                  <SidebarMenuItem
+                    icon="messages"
+                    label="Messages"
+                    href="/messages"
+                    activePaths={["/messages"]}
+                    activeTone="peach"
+                    {...item}
+                  />
                 }
               >
                 <MessagesMenuItem {...item} />
@@ -68,7 +78,7 @@ export function AppSidebar({ collapsed }: AppSidebarProps) {
                 icon="notification"
                 label="Notifications"
                 href="/notifications"
-                activeFor="notifications"
+                activePaths={["/notifications"]}
                 activeTone="peach"
                 {...item}
               />
