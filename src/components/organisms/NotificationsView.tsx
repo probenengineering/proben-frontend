@@ -1,29 +1,20 @@
-import { Suspense } from "react";
-
 import { PageHeading } from "@/components/molecules";
 import { FlatPageTemplate } from "@/components/templates/FlatPageTemplate";
 import { getNotifications } from "@/lib/notifications";
 
-import { ContentSkeleton } from "./ContentSkeleton";
 import { DashboardHeader } from "./DashboardHeader";
 import { NotificationList } from "./NotificationList";
 
-// Notifications page (Figma 51:11625). The header and heading show at once; the list streams in
-// behind a skeleton, so the page never flashes blank.
-export function NotificationsView() {
+// Notifications page (Figma 51:11625). Loaded as a whole (the app layout shows the first-visit
+// loading state), so arriving from another page keeps that page until this one is ready.
+export async function NotificationsView() {
+  const { notifications, error } = await getNotifications();
   return (
     <FlatPageTemplate
       header={<DashboardHeader wideSearch />}
       heading={<PageHeading title="Notifications" />}
     >
-      <Suspense fallback={<ContentSkeleton label="Loading notifications" rows={6} />}>
-        <NotificationsData />
-      </Suspense>
+      <NotificationList notifications={notifications} error={error} />
     </FlatPageTemplate>
   );
-}
-
-async function NotificationsData() {
-  const { notifications, error } = await getNotifications();
-  return <NotificationList notifications={notifications} error={error} />;
 }

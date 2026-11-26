@@ -2,9 +2,9 @@ import "server-only";
 
 import { cache } from "react";
 
-import { identity } from "./api";
+import { ApiError, identity } from "./api";
 import { can, normalizePermissions, type Permission, type PermissionMap } from "./permissions";
-import { getAccessToken } from "./session";
+import { getAccessToken, sessionEnded } from "./session";
 
 // The signed-in person, from GET /auth/me. Staff have a name and email; Proben support staff
 // (support sessions) have only a name. There's no profile photo in the API yet.
@@ -88,7 +88,11 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
       permissions,
       modules: Array.isArray(me.modules) ? me.modules : [],
     };
-  } catch {
+  } catch (error) {
+    // An out-of-date token (roles or homes changed) is refreshed rather than read as signed out.
+    if (error instanceof ApiError && error.status === 401) {
+      if (error.code === "TOKEN_STALE" || error.code === "TOKEN_EXPIRED") sessionEnded(error);
+    }
     return null;
   }
 });

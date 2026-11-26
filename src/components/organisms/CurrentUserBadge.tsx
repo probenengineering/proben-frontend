@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 
 import { Avatar, Tag } from "@/components/atoms";
 import { getCurrentUser } from "@/lib/auth/user";
@@ -20,9 +19,7 @@ async function SignedInBadge() {
 export function CurrentUserBadge() {
   return (
     <div className="flex items-center gap-3">
-      <Suspense fallback={<Avatar color="peach" />}>
-        <SignedInBadge />
-      </Suspense>
+      <SignedInBadge />
     </div>
   );
 }

@@ -17,6 +17,8 @@ export interface ConversationHeaderProps {
   moreHref: string;
   /** Where the phone back arrow goes, e.g. the chat list. */
   backHref?: string;
+  /** Show the call buttons (hidden for people without messaging.calls.start). */
+  canCall?: boolean;
 }
 
 const callsNotReady = () => showToast("error", "Voice and video calls aren’t available yet.");
@@ -27,6 +29,7 @@ export function ConversationHeader({
   avatar,
   moreHref,
   backHref = "/messages",
+  canCall = true,
 }: ConversationHeaderProps) {
   return (
     <div className="flex h-17.75 w-full shrink-0 items-center justify-between border-b border-divider px-5 py-2.5">
@@ -38,13 +41,17 @@ export function ConversationHeader({
         <p className="truncate type-paragraph-sm font-medium text-black">{name}</p>
       </div>
       <div className="flex items-center gap-3">
-        <button type="button" aria-label="Call" onClick={callsNotReady}>
-          <Icon name="call" />
-        </button>
-        <button type="button" aria-label="Video call" onClick={callsNotReady}>
-          <Icon name="video" />
-        </button>
-        <span className="h-3.75 w-px bg-black-10" />
+        {canCall && (
+          <>
+            <button type="button" aria-label="Call" onClick={callsNotReady}>
+              <Icon name="call" />
+            </button>
+            <button type="button" aria-label="Video call" onClick={callsNotReady}>
+              <Icon name="video" />
+            </button>
+            <span className="h-3.75 w-px bg-black-10" />
+          </>
+        )}
         <Link href={moreHref} aria-label="View profile">
           <Icon name="more-circle" />
         </Link>

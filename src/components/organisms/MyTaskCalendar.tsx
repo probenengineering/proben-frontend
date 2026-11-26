@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 
 import { EmptyPanel } from "@/components/molecules";
 import { PERMISSIONS } from "@/lib/auth/permissions";
@@ -7,18 +6,16 @@ import { userCan } from "@/lib/auth/user";
 import { type CalendarParams, parseCalendarParams } from "@/lib/calendar-view";
 import { getTimezone, requestTime } from "@/lib/command-center/api";
 import { getDayCalendar, getMonthCalendar } from "@/lib/command-center/calendar-views";
-import { weekShell } from "@/lib/command-center/tasks";
 import { dayKey, FALLBACK_TIMEZONE } from "@/lib/command-center/time";
 
 import { DayCalendar } from "./DayCalendar";
 import { MonthCalendar } from "./MonthCalendar";
-import { WeekCalendar } from "./WeekCalendar";
 import { WeekCalendarData } from "./WeekCalendarData";
 
 // Calendar body for /schedule and /tasks: Day, Week or Month for the date in the URL
 // (`?view=day&date=2026-10-25`, defaults to this week). Reads the session and the search params,
-// so render it inside <Suspense>. A load error shows above the (empty) calendar. The week view
-// streams: its loading skeleton (Figma 60:8230) shows the real week while events load.
+// so render it below a <Suspense> (the app layout's). A load error shows above the (empty)
+// calendar.
 export interface MyTaskCalendarProps {
   /** "/schedule" or "/tasks": where the toolbar and day links point. */
   base: string;
@@ -51,12 +48,7 @@ export async function MyTaskCalendar({ base, searchParams }: MyTaskCalendarProps
       </>
     );
   }
-  return (
-    <Suspense
-      key={date}
-      fallback={<WeekCalendar {...weekShell(date, now, tz)} base={base} date={date} loading />}
-    >
-      <WeekCalendarData base={base} date={date} canAddTask={canAddTask} />
-    </Suspense>
-  );
+  // Loaded with the page: moving between weeks keeps the current week on screen until the next
+  // one is ready (the layout's progress bar shows meanwhile), rather than emptying it first.
+  return <WeekCalendarData base={base} date={date} canAddTask={canAddTask} />;
 }

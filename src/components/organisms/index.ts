@@ -73,3 +73,4 @@ export { HomesMapLoading } from "./HomesMapLoading";
 export { HomeOverviewTab, type HomeOverviewTabProps } from "./HomeOverviewTab";
 export { GlobalSearch } from "./GlobalSearch";
 export { GlobalSearchTrigger, type GlobalSearchTriggerProps } from "./GlobalSearchTrigger";
+export { NavigationProgress } from "./NavigationProgress";

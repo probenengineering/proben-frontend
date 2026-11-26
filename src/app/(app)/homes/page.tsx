@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import {
-  AssignedHomes,
-  DashboardHeader,
-  DashboardTabs,
-  HomesSkeleton,
-} from "@/components/organisms";
+import { AssignedHomes, DashboardHeader, DashboardTabs } from "@/components/organisms";
 import { TasksTemplate } from "@/components/templates";
 import { DASHBOARD_TABS } from "@/lib/sample-dashboard";
+
+// Moving here from another page waits for this page's data, keeping the current page on screen
+// (with the progress bar) instead of flashing a skeleton; the app layout covers a first visit.
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "My Homes | Proben",
@@ -25,9 +23,7 @@ export default function HomesPage({
       header={<DashboardHeader />}
       tabs={<DashboardTabs tabs={DASHBOARD_TABS} selected="My Homes" />}
     >
-      <Suspense fallback={<HomesSkeleton />}>
-        <AssignedHomes searchParams={searchParams} />
-      </Suspense>
+      <AssignedHomes searchParams={searchParams} />
     </TasksTemplate>
   );
 }

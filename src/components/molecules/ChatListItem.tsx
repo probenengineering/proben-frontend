@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { CountBadge } from "@/components/atoms";
+import { CountBadge, LinkPendingTint } from "@/components/atoms";
 import { cn } from "@/lib/utils";
 
 // One row in the chat list: avatar, name, last message (cut off with …), time, optional unread count.
@@ -71,7 +71,9 @@ export function ChatListItem({
 
   const rowClass = "flex w-full items-center py-3";
   return href ? (
-    <Link href={href} className={rowClass}>
+    // The row tints the moment it's clicked, while the chat loads.
+    <Link href={href} className={cn(rowClass, "relative isolate")}>
+      <LinkPendingTint className="-inset-x-2 rounded-[8px]" />
       {content}
     </Link>
   ) : (

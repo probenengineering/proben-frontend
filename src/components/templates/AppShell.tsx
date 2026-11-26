@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { type ReactNode, Suspense } from "react";
 
-import { AppSidebar, GlobalSearch } from "@/components/organisms";
+import { AppSidebar, GlobalSearch, NavigationProgress } from "@/components/organisms";
 
 // Layout for app pages, rendered once by src/app/(app)/layout.tsx so the sidebar, its user card
 // and unread count stay mounted while pages change: grey page, sidebar on the left (272px, or
@@ -25,7 +25,11 @@ export function AppShell({ children }: AppShellProps) {
         <AppSidebar collapsed />
       </div>
       <div className="flex min-w-0 flex-1">
-        <main className="flex h-full w-full flex-col overflow-clip bg-white group-has-[[data-shell=flat]]/shell:bg-transparent md:rounded-[32px] group-has-[[data-shell=flat]]/shell:md:rounded-none">
+        <main className="relative flex h-full w-full flex-col overflow-clip bg-white group-has-[[data-shell=flat]]/shell:bg-transparent md:rounded-[32px] group-has-[[data-shell=flat]]/shell:md:rounded-none">
+          {/* Reads the URL, so it sits in its own boundary (renders nothing until hydrated). */}
+          <Suspense fallback={null}>
+            <NavigationProgress />
+          </Suspense>
           {children}
         </main>
         {/* ⌘K / the header search box open the global search (Figma 60:14989). */}

@@ -18,6 +18,14 @@ export interface HomeDetailProps {
   day?: string;
 }
 
+const TAB_NAMES: Record<HomeTab, string> = {
+  overview: "overview",
+  team: "team",
+  schedule: "schedule",
+  updates: "updates",
+  resources: "resources",
+};
+
 export async function HomeDetail({ id, tab = "overview", day }: HomeDetailProps) {
   const { home, team, schedule, updates, resources, error } = await getHomeDetail(id, tab, day);
   if (!home) {
@@ -28,6 +36,25 @@ export async function HomeDetail({ id, tab = "overview", day }: HomeDetailProps)
           description={error ?? "It may no longer be assigned to you."}
         />
       </div>
+    );
+  }
+  // Team, schedule, updates and resources open once your assignment starts (the backend refuses
+  // them before then), so an upcoming home says when instead of showing empty lists.
+  // No Figma frame: built from EmptyNotice.
+  if (home.assignment.status === "upcoming" && tab !== "overview") {
+    return (
+      <HomeDetailView home={home} tab={tab}>
+        <div className="flex flex-1 items-center justify-center py-20">
+          <EmptyNotice
+            title="Available when your assignment starts"
+            description={
+              home.assignment.label.startsWith("Starts")
+                ? `Your assignment ${home.assignment.label.replace("Starts", "starts")}. You'll see this home's ${TAB_NAMES[tab]} from then.`
+                : `Your assignment hasn't started yet. You'll see this home's ${TAB_NAMES[tab]} once it does.`
+            }
+          />
+        </div>
+      </HomeDetailView>
     );
   }
   return (

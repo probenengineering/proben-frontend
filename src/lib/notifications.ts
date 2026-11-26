@@ -1,7 +1,7 @@
 import "server-only";
 
-import { ApiError, errorMessage, request, type RequestOptions } from "@/lib/auth/api";
-import { getAccessToken, sessionEnded } from "@/lib/auth/session";
+import { ApiError, errorMessage, type RequestOptions } from "@/lib/auth/api";
+import { authedRequest, getAccessToken, sessionEnded } from "@/lib/auth/session";
 import { requestTime } from "@/lib/command-center/api";
 import type { AppNotification, NotificationKind } from "@/types/notification";
 
@@ -60,11 +60,7 @@ export async function notificationsApi<T>(
   path: string,
   options: Omit<RequestOptions, "accessToken"> = {},
 ) {
-  const accessToken = await getAccessToken();
-  if (!accessToken) {
-    throw new ApiError(401, "UNAUTHENTICATED", "Your session has ended. Sign in again.");
-  }
-  return request<T>(`/api/notifications${path}`, { ...options, accessToken });
+  return authedRequest<T>(`/api/notifications${path}`, options);
 }
 
 /** The newest 100 notifications (one page; paging isn't in Figma). Not signed in → empty. */
@@ -75,7 +71,7 @@ export async function getNotifications(): Promise<NotificationFeed> {
     const now = page.serverTime ? Date.parse(page.serverTime) : await requestTime();
     return { notifications: page.items.map((item) => toNotification(item, now)) };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) sessionEnded();
+    if (error instanceof ApiError && error.status === 401) sessionEnded(error);
     return { notifications: [], error: errorMessage(error) };
   }
 }

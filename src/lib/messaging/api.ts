@@ -1,7 +1,7 @@
 import "server-only";
 
-import { ApiError, request, type RequestOptions } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import { request, type RequestOptions } from "@/lib/auth/api";
+import { authedRequest, getAccessToken } from "@/lib/auth/session";
 
 import type {
   ApiConversation,
@@ -19,11 +19,7 @@ export async function messaging<T>(
   path: string,
   options: Omit<RequestOptions, "accessToken"> = {},
 ) {
-  const accessToken = await getAccessToken();
-  if (!accessToken) {
-    throw new ApiError(401, "UNAUTHENTICATED", "Your session has ended. Sign in again.");
-  }
-  return request<T>(`/api/messaging${path}`, { ...options, accessToken });
+  return authedRequest<T>(`/api/messaging${path}`, options);
 }
 
 /**

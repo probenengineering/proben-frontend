@@ -7,7 +7,7 @@ import type { ScheduleItem } from "@/types/schedule";
 
 // Task detail drawer (Figma 60:6907): 460px floating panel (10px from the edges, 24px radius) over
 // a 24% slate-900 scrim. Type tag + close, title (Inter Semi Bold 22/30) + status, a details
-// table, the description, then Reschedule / Mark as complete. Location, Assigned by and the
+// table, the description, then Mark as complete (Reschedule is hidden, see below). Location, Assigned by and the
 // checklist aren't in the API yet, so they're left out (docs/command-center.md R26).
 export interface ScheduleDetailPanelProps {
   item: ScheduleItem | null;
@@ -76,12 +76,10 @@ export function ScheduleDetailPanel({
               )}
             </div>
 
-            <div className="flex gap-3 border-t border-slate-200 px-6 pt-4 pb-5">
-              {/* No reschedule endpoint yet. */}
-              <Button variant="outline" size="pill" className="flex-1 px-4">
-                Reschedule
-              </Button>
-              {item.status !== "completed" && item.canComplete && (
+            {/* No Reschedule: staff can't reschedule (canReschedule is always false for them,
+                R27) and the admin PATCH /admin/events/{id}/reschedule has no screen yet. */}
+            {item.status !== "completed" && item.canComplete && (
+              <div className="flex gap-3 border-t border-slate-200 px-6 pt-4 pb-5">
                 <Button
                   variant="green"
                   size="pill"
@@ -91,8 +89,8 @@ export function ScheduleDetailPanel({
                 >
                   Mark as complete
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )}
       </SheetContent>

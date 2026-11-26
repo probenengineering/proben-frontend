@@ -66,7 +66,7 @@ export async function getScheduleList(): Promise<ScheduleList> {
       })),
     };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) sessionEnded();
+    if (error instanceof ApiError && error.status === 401) sessionEnded(error);
     return { ...base, error: errorMessage(error) };
   }
 }

@@ -1,29 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { ApiError, identity, type Tokens } from "@/lib/auth/api";
 import { ACCESS_COOKIE, REFRESH_COOKIE, tokenCookies } from "@/lib/auth/cookies";
+import { refreshTokens } from "@/lib/auth/refresh";
 
 // Keeps the session alive: when the access cookie has lapsed (60s before the token expires) but a
-// refresh token is there, get a new pair before the page or action runs.
-// Refresh tokens are single-use (reusing one ends the session), so requests that arrive together
-// with the same token share one refresh call.
-const refreshing = new Map<string, Promise<Tokens | "ended" | undefined>>();
-
-function refresh(refreshToken: string) {
-  let pending = refreshing.get(refreshToken);
-  if (!pending) {
-    pending = identity<Tokens>("/auth/refresh", { body: { refreshToken } }).catch((error) =>
-      // 400/401: the session is over. Anything else (offline, 5xx): try again on the next request.
-      error instanceof ApiError && (error.status === 400 || error.status === 401)
-        ? "ended"
-        : undefined,
-    );
-    refreshing.set(refreshToken, pending);
-    // Keep the result briefly for requests still carrying the old token.
-    setTimeout(() => refreshing.delete(refreshToken), 30_000);
-  }
-  return pending;
-}
+// refresh token is there, get a new pair before the page or action runs (see ./lib/auth/refresh).
 
 // Where a signed-in person lands when they open an auth screen.
 const APP_HOME = "/";
@@ -70,7 +51,7 @@ export async function proxy(request: NextRequest) {
   }
   if (!refreshToken) return signedOut(request);
 
-  const result = await refresh(refreshToken);
+  const result = await refreshTokens(refreshToken);
   // Offline or a backend error: let the request through; the refresh is retried next time.
   if (!result) return NextResponse.next();
 

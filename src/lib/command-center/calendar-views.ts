@@ -24,7 +24,7 @@ const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const LOOKAHEAD_DAYS = 31;
 
 function handle(error: unknown) {
-  if (error instanceof ApiError && error.status === 401) sessionEnded();
+  if (error instanceof ApiError && error.status === 401) sessionEnded(error);
   return errorMessage(error);
 }
 

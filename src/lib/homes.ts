@@ -58,7 +58,7 @@ export async function getAssignedHomes(): Promise<HomesResult> {
       ),
     };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) sessionEnded();
+    if (error instanceof ApiError && error.status === 401) sessionEnded(error);
     return { homes: [], error: errorMessage(error) };
   }
 }

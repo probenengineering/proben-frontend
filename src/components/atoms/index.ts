@@ -27,3 +27,4 @@ export { PriorityLabel, type Priority, type PriorityLabelProps } from "./Priorit
 export { InitialsAvatar, type InitialsAvatarProps } from "./InitialsAvatar";
 export { MapCredit } from "./MapCredit";
 export { KeyHint, type KeyHintProps } from "./KeyHint";
+export { LinkPendingTint, type LinkPendingTintProps } from "./LinkPendingTint";

@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import { DashboardHeader, DashboardTabs, MyTasks, TaskTableSkeleton } from "@/components/organisms";
+import { DashboardHeader, DashboardTabs, MyTasks } from "@/components/organisms";
 import { TasksTemplate } from "@/components/templates";
 import { DASHBOARD_TABS } from "@/lib/sample-dashboard";
+
+// Moving here from another page waits for this page's data, keeping the current page on screen
+// (with the progress bar) instead of flashing a skeleton; the app layout covers a first visit.
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "My Tasks | Proben",
@@ -16,9 +19,7 @@ export default function TasksPage() {
       header={<DashboardHeader />}
       tabs={<DashboardTabs tabs={DASHBOARD_TABS} selected="My Tasks" />}
     >
-      <Suspense fallback={<TaskTableSkeleton />}>
-        <MyTasks />
-      </Suspense>
+      <MyTasks />
     </TasksTemplate>
   );
 }

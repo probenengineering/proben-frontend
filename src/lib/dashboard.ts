@@ -89,7 +89,7 @@ export const getDashboardOverview = cache(async (): Promise<DashboardOverview> =
       openShiftsAvailable: open.total ?? openItems.length,
     };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) sessionEnded();
+    if (error instanceof ApiError && error.status === 401) sessionEnded(error);
     return EMPTY_OVERVIEW;
   }
 });

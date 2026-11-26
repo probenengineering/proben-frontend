@@ -4,14 +4,37 @@
 // Staff sessions send `{ "*": [...provider-wide], "<home id>": [...that home] }`. Support sessions
 // send `{ provider: [...], homes: { "<home id>": [...] } }`; both are stored in the staff shape.
 
-/** Permission keys the app checks. Add keys here as screens start using them. */
+/**
+ * The backend's permission catalogue (docs/roles-and-permissions.md §3). Scope: personal and
+ * provider keys live under "*"; home keys can be provider-wide ("*") or per home id.
+ */
 export const PERMISSIONS = {
-  /** Provider-wide admin: assign tasks and events, manage shifts and homes. */
-  manageOrg: "org.manage",
-  manageRoles: "roles.manage",
+  directoryView: "directory.view",
+  directoryViewAll: "directory.view_all",
+  messagingUse: "messaging.use",
+  sendAttachments: "messaging.attachments.send",
+  sendVoiceNotes: "messaging.voice_notes.send",
+  startCalls: "messaging.calls.start",
+  createGroups: "messaging.groups.create",
+  /** Home scope: manage groups linked to a home. */
+  manageGroups: "messaging.groups.manage",
+  sendPriority: "messaging.priority.send",
+  /** Home scope. */
+  postAnnouncements: "messaging.announcements.send",
   messagingAdmin: "messaging.admin",
-  postAnnouncements: "messaging.announcements",
-  manageGroups: "messaging.groups",
+  messagingContentAccess: "messaging.content.access",
+  messagingLegalHold: "messaging.legal_hold.manage",
+  messagingExport: "messaging.export",
+  messagingReports: "messaging.reports.view",
+  /** Provider-wide only: Command Center administration (assign tasks and events, shifts, homes). */
+  manageOrg: "org.manage",
+  staffView: "staff.view",
+  staffManage: "staff.manage",
+  manageRoles: "roles.manage",
+  providerSettings: "provider.settings.manage",
+  supportGrants: "support.grants.manage",
+  auditView: "audit.view",
+  reportsView: "reports.view",
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS] | (string & {});
@@ -37,6 +60,15 @@ export function normalizePermissions(raw: unknown): PermissionMap {
   }
 
   return Object.fromEntries(Object.entries(record).map(([scope, keys]) => [scope, keysOf(keys)]));
+}
+
+/**
+ * For personal permissions (sending attachments, starting calls…): granted by any role, whether
+ * assigned provider-wide or for one home. The backend hasn't confirmed which scope key carries a
+ * personal grant from a home-scoped role, so any scope counts (the backend still enforces it).
+ */
+export function canPersonally(permissions: PermissionMap | undefined, permission: Permission) {
+  return Object.values(permissions ?? {}).some((keys) => keys.includes(permission));
 }
 
 /**

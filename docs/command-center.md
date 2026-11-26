@@ -1,6 +1,7 @@
 # Command Center — backend handover
 
-**Updated 2026-11-26 (third pass).** This lists only what the backend still needs to do or has only
+**Updated 2026-11-26 (fourth pass, after `command-center-frontend-handover.md` and
+`roles-and-permissions.md`).** This lists only what the backend still needs to do or has only
 partly done. Items that have shipped are removed. API base: `https://api.probenapp.com`. Swagger:
 `/api/commandcenter/docs`, `/api/identity/docs`, `/api/messaging/docs`, `/api/notifications/docs`,
 `/api/files/docs`.
@@ -29,10 +30,10 @@ items.
 | #   | Feature                | Backend still needed or partly done |
 | --- | ---------------------- | ----------------------------------- |
 | 1   | Time clock             | R44                                 |
-| 2   | My Tasks               | R10, R45                            |
+| 2   | My Tasks               | R45                                 |
 | 3   | Search                 | R46                                 |
-| 4   | Messages and directory | R47, R48                            |
-| 5   | Testing                | R15, R1                             |
+| 4   | Messages and directory | R47, R48, R49                       |
+| 5   | Testing                | R15, R1 (partly done)               |
 
 Conventions: times on the wire are ISO 8601 UTC. The server clock is the source of truth. Errors use
 the shared shape (`statusCode`, `code`, `message`, `details`).
@@ -50,9 +51,15 @@ the shared shape (`statusCode`, `code`, `message`, `details`).
 - **R44** Manual clock-in rejection feedback. **R45** File scan status after upload. **R46** Sender
   on search messages. **R47** Directory schemas.
 
-**P3: needs a live check or a small answer**
+**P3: needs a small answer**
 
-- **R10** `counts` casing on `GET /tasks`. **R48** `types` query format on `GET /conversations`.
+- **R48** `types` query format on `GET /conversations`. **R49** Where personal permissions from a
+  home-scoped role appear in `/auth/me`.
+
+R10 is closed: task counts are snake_case (confirmed live). R1 is partly done: personal fixtures
+are live; colleagues on each fixture home and their coverage shifts need the updated seed batch
+deployed and rerun. The frontend now refreshes stale tokens (`401 TOKEN_STALE`) instead of
+signing people out, so a seed rerun no longer logs everyone out.
 
 ---
 
@@ -62,8 +69,10 @@ the shared shape (`statusCode`, `code`, `message`, `details`).
       these accounts. Every login needs an emailed code, and those inboxes don't exist. Please add
       a fixed code (e.g. `000000`) for `@demo.proben.test` in non-production, or send the codes
       somewhere the team can read.
-- [ ] **R1. Seed data for a test staff account.** Can't be checked until R15 is done. Please seed
-      one staff account with:
+- [ ] **R1. Seed data for a test staff account.** Partly done. Personal fixtures (homes, shifts,
+      tasks in every status, events, updates, resources, notifications) are live. Still needed:
+      deploy and rerun the updated batch so each fixture home has a colleague on the Team tab and
+      a colleague coverage shift. The original list, for reference:
   - 2 assigned homes (one `active`, one `upcoming`), each with `details.timezone`, address,
     coordinates, manager, usual shift and contacts, one with `requireLocation: true`;
   - a shift today covering the current time, one tomorrow, and 2 open shifts this week;
@@ -82,7 +91,7 @@ the shared shape (`statusCode`, `code`, `message`, `details`).
 - [ ] **R44. Rejected manual clock-in.** After "Request manual clock-in" the card shows "Awaiting
       approval" while `GET /attendance` returns `pending_approval`. Please confirm what the status
       becomes after a rejection: back to `not_clocked_in`, with `manualClockInRequest.status:
-      "rejected"` and `feedback`? The UI would then show the feedback and offer Try again.
+    "rejected"` and `feedback`? The UI would then show the feedback and offer Try again.
 - [ ] **R45. File scan status.** `POST /api/files` returns `status: "pending_scan"`, and submit
       needs clean files. The UI doesn't poll yet. Please say how long scans usually take, and
       whether `POST /tasks/{id}/submit` returns a specific `code` while a file is still being
@@ -97,12 +106,15 @@ the shared shape (`statusCode`, `code`, `message`, `details`).
 
 ## P3: needs a live check
 
-- [ ] **R10. `GET /tasks` `counts` casing.** Swagger lists snake_case (`in_progress`,
-      `needs_attention`). An earlier response used camelCase. Please confirm the live response
-      matches Swagger. This can be checked once R1 is done.
 - [ ] **R48. `GET /api/messaging/conversations` `types`.** Swagger declares an array. The UI
       sends one comma-separated value (`types=direct,group`). Please confirm that's accepted, or say
       to send `types=direct&types=group`.
+
+- [ ] **R49. Personal permissions from a home-scoped role.** `roles-and-permissions.md` §10 says
+      `"*"` holds "provider-wide/personal grants". Please confirm: when a role with personal
+      permissions (e.g. `messaging.attachments.send`) is assigned for one home only, does the
+      permission appear under `"*"`, under that home's id, or both? Until then the UI counts a
+      personal permission from any scope when deciding whether to show attach and call buttons.
 
 ## Frontend, not started yet (needs Figma)
 
@@ -126,4 +138,8 @@ the shared shape (`statusCode`, `code`, `message`, `details`).
 - **Task submitted copy:** the submitted view says "moved to Finished", but submitted tasks now
   sit under In progress until they're reviewed.
 - **No Figma frames yet:** "Awaiting approval" clock state, "Changes requested" banner in the task
-  drawer, and date and phone task fields.
+  drawer, date and phone task fields, the upcoming-home notice on Team/Schedule/Updates/Resources,
+  and the page-loading progress bar.
+- **Status wording (R14) and clock-out copy (R19):** the backend suggests "Waiting for review",
+  "Changes requested" and "Save this shift to your timesheet". These differ from the Figma copy;
+  waiting on a product/design decision before changing them.

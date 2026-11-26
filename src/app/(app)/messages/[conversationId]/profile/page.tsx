@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import { InboxHeader, ProfilePanel } from "@/components/organisms";
-import { ChatTemplate, InboxTemplate } from "@/components/templates";
+import { ProfilePanel } from "@/components/organisms";
+import { ChatTemplate } from "@/components/templates";
 import { parseFilters } from "@/lib/messaging/filters";
 import { loadChat } from "@/lib/messaging/inbox";
 import { initialsOf } from "@/lib/messaging/mappers";
 import { loadProfile } from "@/lib/messaging/profile";
+
+// Moving between chats waits for the next chat on the server, keeping the current one on screen
+// instead of flashing a loading state (the messages layout covers the first visit).
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "Profile | Messages | Proben",
@@ -15,15 +18,7 @@ export const metadata: Metadata = {
 type Props = PageProps<"/messages/[conversationId]/profile">;
 
 // A chat with the other person's profile beside it (Figma 13:51414).
-export default function ChatProfilePage(props: Props) {
-  return (
-    <Suspense fallback={<InboxTemplate header={<InboxHeader />} list={null} />}>
-      <ChatWithProfile params={props.params} searchParams={props.searchParams} />
-    </Suspense>
-  );
-}
-
-async function ChatWithProfile({ params, searchParams }: Pick<Props, "params" | "searchParams">) {
+export default async function ChatProfilePage({ params, searchParams }: Props) {
   const filters = parseFilters(await searchParams);
   const screen = await loadChat((await params).conversationId, filters);
   const profile = await loadProfile(screen.conversation, screen.me.id, screen.title);

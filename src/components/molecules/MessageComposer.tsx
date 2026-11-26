@@ -23,6 +23,8 @@ export interface MessageComposerProps {
   onCancelReply?: () => void;
   /** Longest message allowed (from the messaging settings). */
   maxLength?: number;
+  /** Show the image / attach / + buttons (hidden for people who may not send files). */
+  canAttach?: boolean;
 }
 
 export function MessageComposer({
@@ -33,6 +35,7 @@ export function MessageComposer({
   reply,
   onCancelReply,
   maxLength,
+  canAttach = true,
 }: MessageComposerProps) {
   const [value, setValue] = useState("");
   const imageInput = useRef<HTMLInputElement>(null);
@@ -102,23 +105,31 @@ export function MessageComposer({
           iconRight={
             <span className="flex items-center gap-3">
               <EmojiButton onPick={(emoji) => setValue((v) => v + emoji)} />
-              <button
-                type="button"
-                aria-label="Add image"
-                onClick={() => imageInput.current?.click()}
-              >
-                <Icon name="gallery" />
-              </button>
-              <button
-                type="button"
-                aria-label="Attach file"
-                onClick={() => fileInput.current?.click()}
-              >
-                <Icon name="attach-square" />
-              </button>
-              <button type="button" aria-label="More" onClick={() => fileInput.current?.click()}>
-                <Icon name="add" />
-              </button>
+              {canAttach && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Add image"
+                    onClick={() => imageInput.current?.click()}
+                  >
+                    <Icon name="gallery" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Attach file"
+                    onClick={() => fileInput.current?.click()}
+                  >
+                    <Icon name="attach-square" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="More"
+                    onClick={() => fileInput.current?.click()}
+                  >
+                    <Icon name="add" />
+                  </button>
+                </>
+              )}
               <span className="h-3.75 w-px bg-black-10" />
               <button type="button" aria-label="Send" onClick={submit}>
                 <Icon name="send" />

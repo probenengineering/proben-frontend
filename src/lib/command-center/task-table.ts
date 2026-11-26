@@ -136,7 +136,7 @@ export async function getTaskTable(): Promise<TaskTableData> {
     });
     return { tasks, loadedAt: now };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) sessionEnded();
+    if (error instanceof ApiError && error.status === 401) sessionEnded(error);
     return { tasks: [], error: errorMessage(error) };
   }
 }

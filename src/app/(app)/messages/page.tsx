@@ -1,26 +1,21 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 import { ChatList, InboxHeader } from "@/components/organisms";
 import { InboxTemplate } from "@/components/templates";
 import { parseFilters } from "@/lib/messaging/filters";
 import { loadInbox } from "@/lib/messaging/inbox";
 
+// Moving between chats waits for the next chat on the server, keeping the current one on screen
+// instead of flashing a loading state (the messages layout covers the first visit).
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "Messages | Proben",
 };
 
-// The header shows straight away; the chat list streams in once loaded.
-// Search, filters and ordering come from the URL (?q=&type=…, see lib/messaging/filters).
-export default function MessagesPage(props: PageProps<"/messages">) {
-  return (
-    <Suspense fallback={<InboxTemplate header={<InboxHeader />} list={null} />}>
-      <Inbox searchParams={props.searchParams} />
-    </Suspense>
-  );
-}
-
-async function Inbox({ searchParams }: Pick<PageProps<"/messages">, "searchParams">) {
+// The chat list, loaded on the server (the messages layout shows the loading state). Search,
+// filters and ordering come from the URL (?q=&type=…, see lib/messaging/filters).
+export default async function MessagesPage({ searchParams }: PageProps<"/messages">) {
   const inbox = await loadInbox(parseFilters(await searchParams));
   return (
     <InboxTemplate

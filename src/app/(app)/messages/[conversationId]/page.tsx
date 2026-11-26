@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import { InboxHeader } from "@/components/organisms";
-import { ChatTemplate, InboxTemplate } from "@/components/templates";
+import { ChatTemplate } from "@/components/templates";
 import { parseFilters } from "@/lib/messaging/filters";
 import { loadChat } from "@/lib/messaging/inbox";
+
+// Moving between chats waits for the next chat on the server, keeping the current one on screen
+// instead of flashing a loading state (the messages layout covers the first visit).
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "Messages | Proben",
@@ -12,16 +14,9 @@ export const metadata: Metadata = {
 
 type Props = PageProps<"/messages/[conversationId]">;
 
-// The header shows straight away; the chat list and conversation stream in once loaded.
-export default function ChatPage(props: Props) {
-  return (
-    <Suspense fallback={<InboxTemplate header={<InboxHeader />} list={null} />}>
-      <Chat params={props.params} searchParams={props.searchParams} />
-    </Suspense>
-  );
-}
-
-async function Chat({ params, searchParams }: Pick<Props, "params" | "searchParams">) {
+// One chat open (the messages layout shows the loading state on a first visit; moving between
+// chats keeps the current one on screen until the next is ready).
+export default async function ChatPage({ params, searchParams }: Props) {
   const filters = parseFilters(await searchParams);
   const screen = await loadChat((await params).conversationId, filters);
   return <ChatTemplate screen={screen} />;

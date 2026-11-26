@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 import { PageHeading, SCHEDULE_VIEWS, ViewToggle } from "@/components/molecules";
-import {
-  ContentSkeleton,
-  DashboardHeader,
-  DashboardTabs,
-  MyTaskCalendar,
-} from "@/components/organisms";
+import { DashboardHeader, DashboardTabs, MyTaskCalendar } from "@/components/organisms";
 import { TasksTemplate } from "@/components/templates";
 import type { CalendarParams } from "@/lib/calendar-view";
 import { DASHBOARD_TABS } from "@/lib/sample-dashboard";
+
+// Moving here from another page waits for this page's data, keeping the current page on screen
+// (with the progress bar) instead of flashing a skeleton; the app layout covers a first visit.
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "Schedule | Proben",
@@ -32,9 +30,7 @@ export default function ScheduleCalendarPage({
       }
       actions={<ViewToggle current="calendar" views={SCHEDULE_VIEWS} />}
     >
-      <Suspense fallback={<ContentSkeleton label="Loading your schedule" rows={6} />}>
-        <MyTaskCalendar base="/schedule" searchParams={searchParams} />
-      </Suspense>
+      <MyTaskCalendar base="/schedule" searchParams={searchParams} />
     </TasksTemplate>
   );
 }

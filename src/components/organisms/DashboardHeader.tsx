@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 
 import { Icon } from "@/components/atoms";
 
@@ -25,11 +24,8 @@ export function DashboardHeader({ greeting, wideSearch }: DashboardHeaderProps) 
         <div className="flex min-w-0 items-center gap-3">
           <MobileNav className="md:hidden" />
           <h1 className="truncate type-title-lg font-medium text-black">
-            {greeting ?? (
-              <Suspense fallback="Hello">
-                <UserGreeting />
-              </Suspense>
-            )}
+            {/* Loaded with the page (no fallback), so it never flashes "Hello" first. */}
+            {greeting ?? <UserGreeting />}
           </h1>
         </div>
         <Link href="/notifications" aria-label="Notifications" className="lg:hidden">

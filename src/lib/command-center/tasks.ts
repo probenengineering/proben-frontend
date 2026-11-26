@@ -36,7 +36,7 @@ const STATUS: Partial<Record<ApiTaskStatus, TaskRecordStatus>> = {
 };
 
 function handle(error: unknown) {
-  if (error instanceof ApiError && error.status === 401) sessionEnded();
+  if (error instanceof ApiError && error.status === 401) sessionEnded(error);
   return errorMessage(error);
 }
 

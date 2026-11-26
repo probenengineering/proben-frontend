@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import { ContentSkeleton, DashboardHeader, HomeDetail } from "@/components/organisms";
+import { DashboardHeader, HomeDetail } from "@/components/organisms";
 import { TasksTemplate } from "@/components/templates";
+
+// Moving here from another page waits for this page's data, keeping the current page on screen
+// (with the progress bar) instead of flashing a skeleton; the app layout covers a first visit.
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "Home | Proben",
@@ -25,9 +28,7 @@ export default async function HomePage({
 }) {
   return (
     <TasksTemplate header={<DashboardHeader />}>
-      <Suspense fallback={<ContentSkeleton label="Loading home" rows={4} />}>
-        <HomeDetailFor params={params} searchParams={searchParams} />
-      </Suspense>
+      <HomeDetailFor params={params} searchParams={searchParams} />
     </TasksTemplate>
   );
 }

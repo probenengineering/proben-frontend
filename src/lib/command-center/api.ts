@@ -3,8 +3,8 @@ import "server-only";
 import { connection } from "next/server";
 import { cache } from "react";
 
-import { ApiError, request, type RequestOptions } from "@/lib/auth/api";
-import { getAccessToken } from "@/lib/auth/session";
+import type { RequestOptions } from "@/lib/auth/api";
+import { authedRequest } from "@/lib/auth/session";
 
 import { addDays, dayKey, FALLBACK_TIMEZONE, startOfDay } from "./time";
 import type {
@@ -24,11 +24,7 @@ export async function commandCenter<T>(
   path: string,
   options: Omit<RequestOptions, "accessToken"> = {},
 ) {
-  const accessToken = await getAccessToken();
-  if (!accessToken) {
-    throw new ApiError(401, "UNAUTHENTICATED", "Your session has ended. Sign in again.");
-  }
-  return request<T>(`/api/commandcenter${path}`, { ...options, accessToken });
+  return authedRequest<T>(`/api/commandcenter${path}`, options);
 }
 
 /** Date.now() for request-time data; tells Next not to prerender past this point. */

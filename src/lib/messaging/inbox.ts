@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { ApiError, errorMessage } from "@/lib/auth/api";
+import { canPersonally, PERMISSIONS } from "@/lib/auth/permissions";
 import { sessionEnded } from "@/lib/auth/session";
 import { type CurrentUser, getCurrentUser } from "@/lib/auth/user";
 import type { ChatAvatar } from "@/lib/chat-types";
@@ -78,7 +79,7 @@ export async function loadInbox(filters: InboxFilters = DEFAULT_FILTERS): Promis
     conversations = all;
     shown = orderChats(matching ?? all, filters);
   } catch (error) {
-    if (error instanceof ApiError && error.status === 401) sessionEnded();
+    if (error instanceof ApiError && error.status === 401) sessionEnded(error);
     const base = { me, ...EMPTY, targets: [], names: {}, filters, catalog: await catalog };
     return { ...base, error: errorMessage(error) };
   }
@@ -118,6 +119,8 @@ export interface ChatScreen extends Inbox {
   title: string;
   page: MessagePage;
   settings: MessagingSettings | null;
+  /** What this person may do in a chat (roles from /auth/me, plus the provider's settings). */
+  can: { attach: boolean; call: boolean };
 }
 
 /** Once per request (the page and its metadata both ask). */
@@ -147,5 +150,11 @@ export const loadChat = cache(async function loadChat(
     title: conversationTitle(conversation, names, inbox.me.id),
     page,
     settings,
+    can: {
+      attach:
+        settings?.attachmentsEnabled !== false &&
+        canPersonally(inbox.me.permissions, PERMISSIONS.sendAttachments),
+      call: canPersonally(inbox.me.permissions, PERMISSIONS.startCalls),
+    },
   };
 });

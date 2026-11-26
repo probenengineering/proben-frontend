@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 import { PageHeading, SCHEDULE_VIEWS, ViewToggle } from "@/components/molecules";
-import {
-  DashboardHeader,
-  DashboardTabs,
-  MySchedule,
-  ScheduleListSkeleton,
-} from "@/components/organisms";
+import { DashboardHeader, DashboardTabs, MySchedule } from "@/components/organisms";
 import { TasksTemplate } from "@/components/templates";
 import { DASHBOARD_TABS } from "@/lib/sample-dashboard";
+
+// Moving here from another page waits for this page's data, keeping the current page on screen
+// (with the progress bar) instead of flashing a skeleton; the app layout covers a first visit.
+export const instant = false;
 
 export const metadata: Metadata = {
   title: "Schedule | Proben",
@@ -27,9 +25,7 @@ export default function ScheduleListPage() {
       }
       actions={<ViewToggle current="list" views={SCHEDULE_VIEWS} />}
     >
-      <Suspense fallback={<ScheduleListSkeleton />}>
-        <MySchedule />
-      </Suspense>
+      <MySchedule />
     </TasksTemplate>
   );
 }
