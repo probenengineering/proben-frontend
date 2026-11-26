@@ -5,6 +5,7 @@ import { SidebarMenuItem, UserCard } from "@/components/molecules";
 import { cn } from "@/lib/utils";
 
 import { CurrentUserCard } from "./CurrentUserCard";
+import { MessagesMenuItem } from "./MessagesMenuItem";
 
 // Figma component "Sidebar": 272px with labels, or 82px icons-only when collapsed (chat open).
 // No item is highlighted, matching the chat frames. Items aren't links yet.
@@ -54,13 +55,13 @@ export function AppSidebar({ collapsed, activeItem, tone = "grey", search }: App
                 activeTone="peach"
                 {...item}
               />
-              <SidebarMenuItem
-                icon="messages"
-                label="Messages"
-                badge="10"
-                href="/messages"
-                {...item}
-              />
+              <Suspense
+                fallback={
+                  <SidebarMenuItem icon="messages" label="Messages" href="/messages" {...item} />
+                }
+              >
+                <MessagesMenuItem {...item} />
+              </Suspense>
               <SidebarMenuItem
                 icon="grid"
                 label="Staffer"

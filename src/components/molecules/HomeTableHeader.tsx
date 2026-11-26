@@ -1,30 +1,25 @@
-import { cn } from "@/lib/utils";
-
-// Column titles for the My Homes table (Figma 51:12496): Home · Location · Residents · Tasks · ›.
-// Full width: 360 · 360 · 147 · 147 · 72 at 1086px (the first two share the spare width).
-// compact (profile panel open, 51:12782): 200 · 200 · flex · flex · 69. Hidden below sm.
+// My homes column header (Figma "Column header" 60:12885): slate-50, 16 × 10 padding, 16px gaps,
+// Inter Medium 12/18 slate-500, a 40px gap over the home icons. Columns are shared with HomeRow.
 export const HOME_TABLE_COLUMNS = {
-  full: "sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_147px_147px_72px]",
-  compact: "sm:grid-cols-[200px_200px_minmax(0,1fr)_minmax(0,1fr)_69px]",
+  icon: "w-10 shrink-0",
+  home: "min-w-0 flex-1 md:w-53.5 md:flex-none md:shrink-0",
+  address: "hidden w-75 shrink-0 md:flex",
+  assignment: "shrink-0 md:w-37.5",
+  role: "hidden min-w-0 flex-1 lg:flex",
+  action: "shrink-0 justify-end md:ml-auto md:w-27.5",
 };
 
-export interface HomeTableHeaderProps {
-  compact?: boolean;
-}
+const HEADER = "type-ui-12 font-medium text-slate-500";
 
-export function HomeTableHeader({ compact }: HomeTableHeaderProps) {
+export function HomeTableHeader() {
   return (
-    <div
-      className={cn(
-        "hidden h-11.5 items-center border-b border-white-200 bg-white type-paragraph-sm font-sans! text-black-60 sm:grid",
-        compact ? HOME_TABLE_COLUMNS.compact : HOME_TABLE_COLUMNS.full,
-      )}
-    >
-      <span className="pr-2 pl-5">Home</span>
-      <span className="px-3">Location</span>
-      <span className="px-10">Residents</span>
-      <span className="px-10">Tasks</span>
-      <span />
+    <div className="hidden items-center gap-4 border-b border-slate-200 bg-slate-50 px-4 py-2.5 md:flex">
+      <span className={HOME_TABLE_COLUMNS.icon} />
+      <span className={`${HOME_TABLE_COLUMNS.home} ${HEADER}`}>Home</span>
+      <span className={`${HOME_TABLE_COLUMNS.address} ${HEADER}`}>Address</span>
+      <span className={`${HOME_TABLE_COLUMNS.assignment} ${HEADER}`}>Assignment</span>
+      <span className={`${HOME_TABLE_COLUMNS.role} ${HEADER}`}>Role</span>
+      <span className={HOME_TABLE_COLUMNS.action} />
     </div>
   );
 }

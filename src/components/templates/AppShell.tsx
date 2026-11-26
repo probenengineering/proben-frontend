@@ -6,8 +6,9 @@ import { cn } from "@/lib/utils";
 
 // Layout for app pages: grey page, sidebar on the left (272px, or 82px collapsed), content in a
 // white card with 32px corners and 10px margins top, bottom and right (Figma 1440x960 chat frames).
-// Below lg the sidebar moves into a ☰ drawer (in the page header). Phones: the card fills the
-// screen edge to edge; tablets keep the grey 10px margin and rounded card.
+// md–lg (tablets, narrow windows) shows the 82px icons-only sidebar; below md it moves into a ☰
+// drawer (in the page header). Phones: the card fills the screen edge to edge; tablets keep the
+// grey 10px margin and rounded card.
 export interface AppShellProps {
   children: ReactNode;
   /** Icons-only sidebar (kept for later; chats currently use the full sidebar). */
@@ -30,10 +31,7 @@ export function AppShell({
   const flat = variant === "flat";
   return (
     <div
-      className={cn(
-        "flex h-dvh w-full",
-        flat ? "bg-white-300" : "bg-surface md:p-2.5 lg:py-0 lg:pr-2.5 lg:pl-0",
-      )}
+      className={cn("flex h-dvh w-full", flat ? "bg-white-300" : "bg-surface md:py-2.5 md:pr-2.5")}
     >
       <div className="hidden h-full lg:block">
         <AppSidebar
@@ -43,7 +41,11 @@ export function AppShell({
           search={flat}
         />
       </div>
-      <div className={cn("flex min-w-0 flex-1", !flat && "lg:py-2.5")}>
+      {/* Tablets and narrow laptop windows: the icons-only sidebar, so navigation stays visible. */}
+      <div className="hidden h-full md:block lg:hidden">
+        <AppSidebar collapsed activeItem={activeNav} tone={flat ? "white" : "grey"} />
+      </div>
+      <div className="flex min-w-0 flex-1">
         <main
           className={cn(
             "flex h-full w-full flex-col overflow-clip",

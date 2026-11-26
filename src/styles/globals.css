@@ -87,6 +87,8 @@
   --color-divider: #e5e5e5; /* chat list right border */
   --color-avatar-peach: #ffe7cc; /* avatar fallback background */
   --color-avatar-pink: #e4baca; /* avatar fallback background */
+  --color-avatar-emerald: #10b981; /* team avatar tint (Figma 60:14030) */
+  --color-avatar-rose: #ec4899; /* team avatar tint (Figma 60:14078) */
   --color-avatar-orange: #ffece5; /* initials avatar background (Figma "Primary/50") */
   --color-unread: #38656a; /* unread count badge (Figma "schemes/tertiary") */
   --color-line: #d9d9d9; /* message box border, profile photo fallback */
@@ -118,6 +120,59 @@
   --color-event-purple-text: #6d28d9; /* "violet/700" */
   --color-event-amber-text: #b45309; /* "amber/700"; the amber bar is warning #f59e0b */
 
+  /* Home dashboard v2 (Figma 60:9785 and siblings). Raw hex in Figma, no variable names; agreed as
+     tokens. Untitled-UI-style ramps: slate = neutrals, danger/verified/caution/info = states. */
+  --color-slate-50: #f9fafb; /* modal summary, card hover */
+  --color-slate-100: #f2f4f7; /* neutral pill, "Break used" button */
+  --color-slate-200: #eaecf0; /* card borders */
+  --color-slate-500: #667085; /* secondary text */
+  --color-slate-900: #101828; /* primary text, "Clock out" button */
+  --color-ring-track: #eeeeee; /* "My time" ring track */
+  --color-week-label: #717179; /* week strip day names */
+  --color-green-ink: #4f7f1f; /* green text on a green tint (today, date badge) */
+  --color-danger-50: #fef3f2;
+  --color-danger-100: #fee4e2; /* failed ring track */
+  --color-danger-200: #fecdca;
+  --color-danger-300: #fda29b; /* invalid input border (Figma 60:12504) */ /* error alert border (Figma 60:12026) */
+  --color-danger-500: #f04438; /* dots, now line, overtime arc */
+  --color-danger-600: #d92d20; /* task priority High (Figma 60:11073) */
+  --color-danger-700: #b42318;
+  --color-verified-50: #ecfdf3;
+  --color-verified-500: #17b26a;
+  --color-verified-700: #067647;
+  --color-caution-50: #fffaeb;
+  --color-caution-200: #fedf89;
+  /* Task draft progress card (Figma 60:12375). */
+  --color-progress-50: #f4f3ff;
+  --color-progress-500: #7a5af8;
+  --color-progress-700: #5925dc; /* offline banner border (Figma 60:11662) */
+  --color-caution-500: #f79009; /* break arc */
+  --color-caution-600: #dc6803; /* task priority Medium (Figma 60:11074) */
+  --color-caution-700: #b54708;
+  --color-info-50: #eff8ff;
+  --color-info-200: #b2ddff; /* "In progress" agenda border */
+  --color-info-500: #2e90fa;
+  --color-info-700: #175cd3;
+  --color-skeleton-grid: #eef0f3; /* week calendar loading blocks (Figma 60:8230) */
+  --color-green-tint: #f4faef; /* selected calendar day: header + column (Figma 60:7203) */
+  --color-green-icon: #5e8f2b; /* calendar icons in empty states (60:10644, 60:7021) */
+
+  /* Modal shadow (Figma 60:10838): 0 20 48 -8 #0F1729 @ 20% */
+  --shadow-modal: 0 20px 48px -8px rgb(15 23 41 / 0.2);
+  --shadow-preview: 0 20px 48px -8px rgb(15 23 41 / 0.25); /* file preview dialog (Figma 60:14744) */
+  /* Detail drawer shadow (Figma 60:6907): 0 12 40 -8 #0F1729 @ 16% */
+  --shadow-drawer: 0 12px 40px -8px rgb(15 23 41 / 0.16);
+  --shadow-task-drawer: 0 12px 40px -8px rgb(15 23 41 / 0.18); /* My tasks drawer (Figma 60:11766) */
+  /* Calendar popovers (Figma 60:7511, 60:7847): 0 12 32 -6 #0F1729 @ 14% */
+  --shadow-popover: 0 12px 32px -6px rgb(15 23 41 / 0.14);
+  --shadow-map-overlay: 0 8px 24px -4px rgb(15 23 41 / 0.14); /* map chip, zoom, cards (Figma 60:13774) */
+  --shadow-menu: 0 12px 32px -6px rgb(15 23 41 / 0.12); /* filter dropdown menu (Figma 60:12809) */
+  /* Selected calendar event (Figma 60:7667): 0 6 16 -2 #6E29D9 @ 25% */
+  --shadow-event-selected: 0 6px 16px -2px rgb(110 41 217 / 0.25);
+  /* Day view empty card (Figma 60:8851): 0 8 24 -6 #0F1729 @ 8% */
+  --shadow-card: 0 8px 24px -6px rgb(15 23 41 / 0.08);
+  --shadow-toast: 0 10px 24px -6px rgb(15 23 41 / 0.25); /* dark action toast (Figma 60:11351) */
+
   /* Error (Red). Palette: base, 50, 700. Component variables: 200, 500 */
   --color-error: #ef4444;
   --color-error-50: #fee2e2;
@@ -127,6 +182,16 @@
 }
 
 /* Fonts are loaded in src/app/layout.tsx with next/font */
+/* Always emitted (not only when a class uses them): the homes map reads these at runtime to
+   recolour its tiles (src/lib/map-style.ts). */
+@theme static {
+  /* My homes map (Figma "Map Canvas" 60:13421): land, water, parks. */
+  --color-map-land: #eef2ea;
+  --color-map-water: #cfe3f2;
+  --color-map-park: #d9ebcf;
+  --color-map-label-water: #5b8db8; /* lake names (Figma 60:13421) */
+}
+
 @theme inline {
   --font-sans: var(--font-family-inter-tight);
   --font-heading: var(--font-family-inter-tight);
@@ -311,6 +376,114 @@
   font-size: 0.625rem; /* 10px */
   line-height: 1.2;
   letter-spacing: 0.16em; /* 16% */
+}
+
+/* Home dashboard v2 (Figma 60:9785…): Inter with fixed pixel line heights, outside the style
+   guide's ramp. Named by font size; agreed as tokens alongside the v2 colours. */
+@utility type-ui-30 {
+  font-family: var(--font-family-inter);
+  font-size: 1.875rem; /* 30px, ring timer */
+  line-height: 2.375rem; /* 38px */
+}
+@utility type-ui-22 {
+  font-family: var(--font-family-inter);
+  font-size: 1.375rem; /* 22px, detail panel title */
+  line-height: 1.875rem; /* 30px */
+}
+@utility type-ui-20-26 {
+  font-family: var(--font-family-inter);
+  font-size: 1.25rem; /* 20px, day popover date badge */
+  line-height: 1.625rem; /* 26px */
+}
+@utility type-ui-18-28 {
+  font-family: var(--font-family-inter);
+  font-size: 1.125rem; /* 18px, list empty-state title */
+  line-height: 1.75rem; /* 28px */
+}
+@utility type-ui-11-14 {
+  font-family: var(--font-family-inter);
+  font-size: 0.6875rem; /* 11px, month view chips and "+N more" */
+  line-height: 0.875rem; /* 14px */
+}
+@utility type-ui-13-20 {
+  font-family: var(--font-family-inter);
+  font-size: 0.8125rem; /* 13px, popover meta rows, detail labels */
+  line-height: 1.25rem; /* 20px */
+}
+@utility type-ui-20 {
+  font-family: var(--font-family-inter);
+  font-size: 1.25rem; /* 20px, modal title */
+  line-height: 1.75rem; /* 28px */
+}
+@utility type-ui-18 {
+  font-family: var(--font-family-inter);
+  font-size: 1.125rem; /* 18px, "My time" */
+  line-height: 1.625rem; /* 26px */
+}
+@utility type-ui-16 {
+  font-family: var(--font-family-inter);
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem; /* 24px */
+}
+@utility type-ui-16-24 {
+  font-family: var(--font-family-inter);
+  font-size: 1rem; /* 16px, home update title (Figma 60:14309) */
+  line-height: 1.5rem; /* 24px */
+}
+@utility type-ui-16-tight {
+  font-family: var(--font-family-inter);
+  font-size: 1rem; /* 16px, date badge day */
+  line-height: 1.25rem; /* 20px */
+}
+@utility type-ui-15 {
+  font-family: var(--font-family-inter);
+  font-size: 0.9375rem; /* 15px, clock stat value */
+  line-height: 1.375rem; /* 22px */
+}
+@utility type-ui-15-20 {
+  font-family: var(--font-family-inter);
+  font-size: 0.9375rem; /* 15px, map cluster count (Figma 60:13424) */
+  line-height: 1.25rem; /* 20px */
+}
+@utility type-ui-14 {
+  font-family: var(--font-family-inter);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem; /* 20px */
+}
+@utility type-ui-14-18 {
+  font-family: var(--font-family-inter);
+  font-size: 0.875rem; /* 14px, 44px team avatar initials (Figma 60:14002) */
+  line-height: 1.125rem; /* 18px */
+}
+@utility type-ui-13 {
+  font-family: var(--font-family-inter);
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.125rem; /* 18px */
+}
+@utility type-ui-12 {
+  font-family: var(--font-family-inter);
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.125rem; /* 18px */
+}
+@utility type-ui-12-16 {
+  font-family: var(--font-family-inter);
+  font-size: 0.75rem; /* 12px, map pin labels, team avatars (Figma 60:13422, 60:13913) */
+  line-height: 1rem; /* 16px */
+}
+@utility type-ui-11 {
+  font-family: var(--font-family-inter);
+  font-size: 0.6875rem; /* 11px, now line */
+  line-height: 1rem; /* 16px */
+}
+@utility type-ui-10 {
+  font-family: var(--font-family-inter);
+  font-size: 0.625rem; /* 10px, week strip day names */
+  line-height: 0.875rem; /* 14px */
+}
+@utility type-ui-10-tight {
+  font-family: var(--font-family-inter);
+  font-size: 0.625rem; /* 10px, date badge weekday */
+  line-height: 0.75rem; /* 12px */
 }
 
 @layer base {

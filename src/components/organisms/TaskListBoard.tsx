@@ -16,9 +16,11 @@ export interface TaskListBoardProps {
   tasks: TaskRecord[];
   /** "2026-10-28": the day treated as Today. */
   today: string;
+  /** The tasks failed to load; shown in place of "No tasks". */
+  error?: string;
 }
 
-export function TaskListBoard({ tasks, today }: TaskListBoardProps) {
+export function TaskListBoard({ tasks, today, error }: TaskListBoardProps) {
   const [filters, setFilters] = useState<TaskFilter[]>([]);
   const groups = groupTasks(tasks, filters, today);
 
@@ -41,7 +43,7 @@ export function TaskListBoard({ tasks, today }: TaskListBoardProps) {
       >
         {groups.length === 0 ? (
           <div className="px-6 pt-6">
-            <EmptyPanel message="No tasks" />
+            <EmptyPanel message={error ?? "No tasks"} />
           </div>
         ) : (
           groups.map((group) => <TaskGroup key={group.title} {...group} />)

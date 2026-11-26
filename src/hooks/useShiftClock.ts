@@ -1,134 +1,141 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 
-import { deriveTotals, ringProgress } from "@/lib/shift-clock/derive";
-import { formatClockTime, formatDuration, formatTimer } from "@/lib/shift-clock/format";
-import { clockIn, clockOut, endBreak, shiftClockStore, startBreak } from "@/lib/shift-clock/store";
-import type { ScheduledShift } from "@/lib/shift-clock/types";
-import type { StatusPillProps } from "@/components/atoms";
+import type { ApiAttendance } from "@/lib/command-center/types";
+import type { ClockInLocation } from "@/lib/command-center/attendance-actions";
+import { formatTime } from "@/lib/command-center/time";
+import { deriveTotals, distanceMeters, fromAttendance } from "@/lib/shift-clock/derive";
+import { formatDuration, formatMinutes } from "@/lib/shift-clock/format";
+import { runClockAction, type ClockAction } from "@/lib/shift-clock/store";
+import { EMPTY_CLOCK, type ScheduledShift } from "@/lib/shift-clock/types";
+import { buildClockView, type ClockInFailure, type ShiftClockView } from "@/lib/shift-clock/view";
+import { showToast } from "@/lib/toast";
 
-type PillTone = NonNullable<StatusPillProps["tone"]>;
-
-export interface ClockStatView {
-  label: string;
-  value: string;
-  /** Figma greys the break-state labels (#737E8C) but not "Scheduled shift"/"Break time". */
-  mutedLabel?: boolean;
-  /** Greyed label and value (no shift today). */
-  muted?: boolean;
+/** Rows of the "Clock out and end your shift?" summary. */
+export interface ClockOutSummary {
+  clockIn: string;
+  clockOut: string;
+  breakTaken: string;
+  worked: string;
 }
 
-export interface ShiftClockView {
-  /** Big ring number, "HH : MM". */
-  timer: string;
-  /** Ring fill 0–1. */
-  progress: number;
-  /** "fade" = grey→green arc while working; "solid" = bright green while on break. */
-  ringVariant: "fade" | "solid";
-  /** No onClick = shown but not clickable (no shift today). */
-  action: { label: string; tone: PillTone; onClick?: () => void };
-  status: { label: string; tone: PillTone };
-  clockInTime: string;
-  /** False before clocking in: the clock-in row is greyed out. */
-  active: boolean;
-  /** Bottom row: [left, right]. */
-  stats: [ClockStatView, ClockStatView];
+export interface ShiftClockState {
+  view: ShiftClockView;
+  /** The "Clock in for your shift?" modal (Figma 60:10721). */
+  confirmIn: {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    /** Clocks in with the position the modal already read, if any. */
+    clockIn: (location?: ClockInLocation) => Promise<void>;
+  };
+  /** The "Clock out and end your shift?" modal (Figma 60:10864). */
+  confirmOut: {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    summary: ClockOutSummary | null;
+    clockOut: () => Promise<void>;
+  };
 }
 
 const subscribeTick = (notify: () => void) => {
   const id = window.setInterval(notify, 1000);
   return () => window.clearInterval(id);
 };
-const subscribeNever = () => () => {};
 /** Whole seconds, so repeated reads within a second return the same snapshot. */
 const readNow = () => Math.floor(Date.now() / 1000) * 1000;
 
-// Drives the "My time" card. State lives in the shift-clock store (localStorage until the
-// backend exists); this hook ticks `now` every second and maps the record to what the card shows.
-export function useShiftClock(shift: ScheduledShift | null): ShiftClockView {
-  const clock = useSyncExternalStore(
-    shiftClockStore.subscribe,
-    shiftClockStore.getSnapshot,
-    shiftClockStore.getServerSnapshot,
+// Drives the "My time" card. State starts from the server's attendance record and is replaced by
+// each action's response; `now` ticks every second (0 while prerendering, so Date.now() never
+// runs during prerender). Clock in and clock out each go through a confirmation modal. A location
+// refusal on clock-in shows the "Clock-in failed" state; other errors show a toast.
+export function useShiftClock(
+  shift: ScheduledShift | null,
+  initial: ApiAttendance | null,
+  openShiftsAvailable: number,
+  nextShift?: string,
+): ShiftClockState {
+  const [clock, setClock] = useState(() =>
+    initial ? fromAttendance(initial, Date.parse(initial.serverTime)) : EMPTY_CLOCK,
   );
-  // Ticks once a second while the clock runs. Read through a store so Date.now() never runs
-  // during prerender (Next flags that); every render after an action reads a fresh time too.
-  const running = clock.status !== "not_clocked_in";
-  const now = useSyncExternalStore(running ? subscribeTick : subscribeNever, readNow, () => 0);
+  const [failure, setFailure] = useState<ClockInFailure | null>(null);
+  const [confirmingIn, setConfirmingIn] = useState(false);
+  const [confirmingOut, setConfirmingOut] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const now = useSyncExternalStore(subscribeTick, readNow, () => 0);
 
-  // No shift today (Figma 51:10133): everything zeroed and greyed, Clock in not clickable.
-  if (!shift) {
-    return {
-      timer: "00 : 00",
-      progress: 0,
-      ringVariant: "fade",
-      action: { label: "Clock in", tone: "green" },
-      status: { label: "Not clocked in", tone: "orange" },
-      clockInTime: "00 : 00",
-      active: false,
-      stats: [
-        { label: "Work Duration", value: "00 : 00", muted: true },
-        { label: "Break ends in", value: "00 : 00", muted: true },
-      ],
-    };
-  }
-
-  const totals = deriveTotals(clock, shift, now);
-  const progress = ringProgress(clock, shift, totals);
-  const scheduled = { label: "Scheduled shift", value: shift.label };
-  const breakTime = {
-    label: "Break time",
-    value: formatDuration(shift.breakAllowanceMinutes * 60_000),
+  const run = async (action: ClockAction, location?: ClockInLocation) => {
+    if (!shift || busy) return;
+    setBusy(true);
+    try {
+      const result = await runClockAction(action, shift, location);
+      if (result.ok) {
+        setClock(result.clock);
+        setFailure(null);
+      } else if (action === "clock-in" && result.reason?.startsWith("LOCATION")) {
+        const home = shift.latitude !== undefined && shift.longitude !== undefined;
+        setFailure({
+          reason: result.reason,
+          distanceMeters:
+            location && home
+              ? distanceMeters(
+                  [location.latitude, location.longitude],
+                  [shift.latitude!, shift.longitude!],
+                )
+              : undefined,
+        });
+      } else {
+        showToast("error", result.error);
+      }
+    } finally {
+      setBusy(false);
+    }
   };
 
-  if (clock.status === "not_clocked_in") {
-    return {
-      timer: "00 : 00",
-      progress,
-      ringVariant: "fade",
-      action: { label: "Clock in", tone: "green", onClick: clockIn },
-      status: { label: "Not clocked in", tone: "orange" },
-      clockInTime: "00 : 00",
-      active: false,
-      stats: [scheduled, breakTime],
+  const view = buildClockView({
+    clock,
+    shift,
+    now,
+    failure,
+    openShiftsAvailable,
+    nextShift,
+    on: {
+      clockIn: () => setConfirmingIn(true),
+      takeBreak: () => void run("break"),
+      endBreak: () => void run("resume"),
+      clockOut: () => setConfirmingOut(true),
+    },
+  });
+
+  let summary: ClockOutSummary | null = null;
+  if (shift && clock.clockedInAt && now) {
+    const totals = deriveTotals(clock, shift, now);
+    summary = {
+      clockIn: formatTime(clock.clockedInAt, shift.timeZone),
+      clockOut: formatTime(now, shift.timeZone),
+      breakTaken: formatMinutes(totals.breakUsedMs / 60_000),
+      worked: formatDuration(totals.workedMs),
     };
   }
 
-  const clockInTime = formatClockTime(clock.clockedInAt ?? now);
-
-  if (clock.status === "on_break") {
-    return {
-      timer: formatTimer(totals.breakUsedMs),
-      progress,
-      ringVariant: "solid",
-      action: { label: "Resume work", tone: "black", onClick: endBreak },
-      status: { label: totals.breakAllowanceUsed ? "Break ended" : "On break", tone: "amber" },
-      clockInTime,
-      active: true,
-      stats: [
-        { label: "Work Duration", value: formatDuration(totals.workedMs), mutedLabel: true },
-        {
-          label: "Break ends in",
-          value: formatDuration(totals.breakLeftMs, "up"),
-          mutedLabel: true,
-        },
-      ],
-    };
-  }
-
-  // Clocked in: another break while allowance is left; once it's used up (or the shift is done), clock out.
-  const canBreak = !totals.breakAllowanceUsed && !totals.shiftComplete;
   return {
-    timer: formatTimer(totals.workedMs),
-    progress,
-    ringVariant: "fade",
-    action: canBreak
-      ? { label: "Take break", tone: "black", onClick: startBreak }
-      : { label: "Clock out", tone: "green", onClick: clockOut },
-    status: { label: "Clocked in", tone: "leaf" },
-    clockInTime,
-    active: true,
-    stats: [scheduled, breakTime],
+    view,
+    confirmIn: {
+      open: confirmingIn,
+      setOpen: setConfirmingIn,
+      clockIn: async (location) => {
+        setConfirmingIn(false);
+        await run("clock-in", location);
+      },
+    },
+    confirmOut: {
+      open: confirmingOut,
+      setOpen: setConfirmingOut,
+      summary,
+      clockOut: async () => {
+        setConfirmingOut(false);
+        await run("clock-out");
+      },
+    },
   };
 }

@@ -18,6 +18,11 @@ export const TASK_VIEWS: ViewOption[] = [
   { id: "list", label: "List", icon: "task", href: "/tasks/list" },
 ];
 
+export const SCHEDULE_VIEWS: ViewOption[] = [
+  { id: "calendar", label: "Calender", icon: "calendar", href: "/schedule" },
+  { id: "list", label: "List", icon: "task", href: "/schedule/list" },
+];
+
 export const HOME_VIEWS: ViewOption[] = [
   { id: "list", label: "List", icon: "task" },
   { id: "section", label: "Section", icon: "category" },

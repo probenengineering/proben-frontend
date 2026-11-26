@@ -5,13 +5,15 @@ import { cn } from "@/lib/utils";
 
 import { AppSidebar } from "./AppSidebar";
 
-// Phones and tablets (below 1024px): a ☰ button that opens the app sidebar as a drawer from the left.
+// Phones (below 768px; tablets get the icons-only sidebar): a ☰ button that opens the app sidebar as a drawer from the left.
 // Not in Figma (agreed): the ☰ icon is lucide's, as Figma has no menu icon.
 export interface MobileNavProps {
   className?: string;
+  /** Sidebar item to highlight, like the desktop sidebar. */
+  activeItem?: "home" | "notifications";
 }
 
-export function MobileNav({ className }: MobileNavProps) {
+export function MobileNav({ className, activeItem }: MobileNavProps) {
   return (
     <Sheet>
       <SheetTrigger aria-label="Open menu" className={cn("flex", className)}>
@@ -23,7 +25,7 @@ export function MobileNav({ className }: MobileNavProps) {
         className="gap-0 overflow-y-auto bg-surface p-0 data-[side=left]:w-68 data-[side=left]:max-w-[85vw] data-[side=left]:border-r-0"
       >
         <SheetTitle className="sr-only">Menu</SheetTitle>
-        <AppSidebar />
+        <AppSidebar activeItem={activeItem} />
       </SheetContent>
     </Sheet>
   );

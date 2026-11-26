@@ -9,13 +9,28 @@ import { ArrowLink } from "./ArrowLink";
 // One notification (Figma 51:11625): 40px boxed icon, title with a green dot while unread, the
 // message (one line with "…" until expanded), "10 min ago · Schedule", then ✓ (mark as read)
 // and › (expand). Expanded (51:12260): full message, ⌃, and a "View … →" link underneath.
+// Figma draws schedule, tasks and homes; the other API categories reuse existing icons
+// (unverified). Kinds without a page yet have no "View …" link; the item's own destination
+// (a chat or a home) overrides the kind's default page.
 const kinds: Record<
   NotificationKind,
-  { icon: IconName; label: string; link: string; href: string }
+  { icon: IconName; label: string; link?: { label: string; href: string } }
 > = {
-  schedule: { icon: "calendar-edit", label: "Schedule", link: "View schedule", href: "/" },
-  task: { icon: "task-square", label: "Tasks", link: "View task", href: "/tasks/list" },
-  home: { icon: "home-hashtag", label: "Homes", link: "View home", href: "/homes" },
+  homes: { icon: "home-linear", label: "Homes", link: { label: "View home", href: "/homes" } },
+  schedule: {
+    icon: "calendar-edit",
+    label: "Schedule",
+    link: { label: "View schedule", href: "/" },
+  },
+  tasks: { icon: "task-square", label: "Tasks", link: { label: "View task", href: "/tasks/list" } },
+  messages: {
+    icon: "message-text",
+    label: "Messages",
+    link: { label: "View message", href: "/messages" },
+  },
+  announcements: { icon: "message-notif", label: "Announcements" },
+  attendance: { icon: "clock", label: "Attendance", link: { label: "View time clock", href: "/" } },
+  hr_documents: { icon: "document-text", label: "HR documents" },
 };
 
 export interface NotificationItemProps {
@@ -72,7 +87,7 @@ export function NotificationItem({
         />
       </div>
       <AnimatePresence initial={false}>
-        {expanded && (
+        {expanded && kind.link && (
           <motion.div
             className="flex overflow-hidden pl-10"
             initial={{ height: 0, opacity: 0 }}
@@ -80,7 +95,7 @@ export function NotificationItem({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: EASE_OUT }}
           >
-            <ArrowLink href={kind.href}>{kind.link}</ArrowLink>
+            <ArrowLink href={notification.href ?? kind.link.href}>{kind.link.label}</ArrowLink>
           </motion.div>
         )}
       </AnimatePresence>

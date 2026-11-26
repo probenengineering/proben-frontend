@@ -29,7 +29,7 @@ export function InboxHeader({ filters, catalog }: InboxHeaderProps) {
     <header className="flex w-full shrink-0 flex-col border-b border-white-400 lg:h-21.75 lg:flex-row lg:items-center">
       <div className="flex h-16 w-full shrink-0 items-center justify-between px-5 lg:h-auto lg:w-96 lg:pr-4 lg:pl-10">
         <div className="flex items-center gap-3">
-          <MobileNav className="lg:hidden" />
+          <MobileNav className="md:hidden" />
           <h1 className="type-title-lg font-medium text-black">Inbox</h1>
         </div>
         <div className="flex items-center gap-3">

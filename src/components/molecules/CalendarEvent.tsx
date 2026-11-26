@@ -4,13 +4,37 @@ import { cn } from "@/lib/utils";
 // Figma "Event": tinted block (colour at 10%) with a 3px colour bar, then the time (with an
 // optional round video badge) and title in Inter Semi Bold 12/16. "plain" drops the tint and bar
 // (Figma's Monday lunch). Text is clipped when the block is short, as in Figma.
+// Selected (quick-peek popover open, Figma 60:7667): 1.5px border in the bar colour + shadow.
 export type CalendarEventColor = "blue" | "green" | "purple" | "amber";
 
-const colors: Record<CalendarEventColor, { tint: string; bar: string; text: string }> = {
-  blue: { tint: "bg-event-blue/10", bar: "bg-event-blue", text: "text-event-blue-text" },
-  green: { tint: "bg-event-green/10", bar: "bg-event-green", text: "text-event-green-text" },
-  purple: { tint: "bg-event-purple/10", bar: "bg-event-purple", text: "text-event-purple-text" },
-  amber: { tint: "bg-warning/10", bar: "bg-warning", text: "text-event-amber-text" },
+const colors: Record<
+  CalendarEventColor,
+  { tint: string; bar: string; text: string; border: string }
+> = {
+  blue: {
+    tint: "bg-event-blue/10",
+    bar: "bg-event-blue",
+    text: "text-event-blue-text",
+    border: "border-event-blue",
+  },
+  green: {
+    tint: "bg-event-green/10",
+    bar: "bg-event-green",
+    text: "text-event-green-text",
+    border: "border-event-green",
+  },
+  purple: {
+    tint: "bg-event-purple/10",
+    bar: "bg-event-purple",
+    text: "text-event-purple-text",
+    border: "border-event-purple",
+  },
+  amber: {
+    tint: "bg-warning/10",
+    bar: "bg-warning",
+    text: "text-event-amber-text",
+    border: "border-warning",
+  },
 };
 
 const badges: Partial<Record<CalendarEventColor, { bg: string; icon: IconName }>> = {
@@ -25,6 +49,7 @@ export interface CalendarEventProps {
   color?: CalendarEventColor;
   video?: boolean;
   plain?: boolean;
+  selected?: boolean;
   className?: string;
 }
 
@@ -34,6 +59,7 @@ export function CalendarEvent({
   color = "blue",
   video,
   plain,
+  selected,
   className,
 }: CalendarEventProps) {
   const c = colors[color];
@@ -41,9 +67,10 @@ export function CalendarEvent({
   return (
     <div
       className={cn(
-        "flex size-full overflow-clip rounded-[4px] font-inter text-xs leading-4 font-semibold",
+        "flex size-full overflow-clip rounded-[4px] text-left font-inter text-xs leading-4 font-semibold",
         !plain && c.tint,
         c.text,
+        selected && cn("border-[1.5px] shadow-event-selected", c.border),
         className,
       )}
     >

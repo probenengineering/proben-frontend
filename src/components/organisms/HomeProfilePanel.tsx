@@ -1,15 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { Icon, Separator, Switch } from "@/components/atoms";
+import { Icon, Separator } from "@/components/atoms";
 import { CopyButton, ProfileRow, ProfileSection } from "@/components/molecules";
 import type { AssignedHome } from "@/types/home";
 
+import { MuteToggle } from "./MuteToggle";
+
 // "Profile" panel (384px) for a selected home (Figma 51:12782), built from the chat profile
 // panel's pieces: name and address, map, residents and open tasks, contact details with copy
-// buttons, and a Notifications switch.
-// The map is a placeholder image until the backend sends coordinates; the switch only changes
-// locally for now. Figma's copy "Mute notifications for this conversation" is kept as designed.
+// buttons, and a Notifications switch (on = this home's push is muted, saved to the API).
+// The map is a placeholder image until a map provider is chosen. Figma's copy "Mute
+// notifications for this conversation" is kept as designed.
 export interface HomeProfilePanelProps {
   home: AssignedHome;
   closeHref: string;
@@ -51,7 +53,11 @@ export function HomeProfilePanel({ home, closeHref }: HomeProfilePanelProps) {
 
       <ProfileSection>
         <div className="flex flex-col gap-2.25">
-          <ProfileRow icon="profile-2user" title={`${home.residents} Residents`} className="py-2" />
+          <ProfileRow
+            icon="profile-2user"
+            title={`${home.residents ?? "—"} Residents`}
+            className="py-2"
+          />
           <ProfileRow
             icon="task-square"
             title={`${home.openTasks} open task${home.openTasks === 1 ? "" : "s"}`}
@@ -95,7 +101,7 @@ export function HomeProfilePanel({ home, closeHref }: HomeProfilePanelProps) {
           icon="notification-bing"
           title="Notifications"
           subtitle="Mute notifications for this conversation"
-          trailing={<Switch aria-label="Mute notifications for this home" defaultChecked />}
+          trailing={<MuteToggle key={home.id} homeId={home.id} muted={home.notificationsMuted} />}
           className="py-2"
         />
       </ProfileSection>

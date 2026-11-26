@@ -1,33 +1,25 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { PageHeading, ViewToggle } from "@/components/molecules";
-import { DashboardHeader, DashboardTabs, WeekCalendar } from "@/components/organisms";
+import { DashboardHeader, DashboardTabs, MyTasks, TaskTableSkeleton } from "@/components/organisms";
 import { AppShell, TasksTemplate } from "@/components/templates";
 import { DASHBOARD_TABS } from "@/lib/sample-dashboard";
-import { CALENDAR_DAYS, CALENDAR_EVENTS } from "@/lib/sample-tasks";
 
 export const metadata: Metadata = {
   title: "My Tasks | Proben",
 };
 
-export default function TasksCalendarPage() {
+// My tasks (Figma 60:11012): the task table. The calendar lives under Today's Schedule.
+export default function TasksPage() {
   return (
     <AppShell activeNav="home">
       <TasksTemplate
-        dense
-        header={<DashboardHeader greeting="Good morning, Alision" />}
+        header={<DashboardHeader />}
         tabs={<DashboardTabs tabs={DASHBOARD_TABS} selected="My Tasks" />}
-        heading={<PageHeading title="My task" description="Manage and track your assigned task" />}
-        actions={<ViewToggle current="calendar" />}
       >
-        <WeekCalendar
-          monthLabel="October 2026"
-          days={CALENDAR_DAYS}
-          events={CALENDAR_EVENTS}
-          startHour={7}
-          endHour={17}
-          timezone={["EST", "GMT-5"]}
-        />
+        <Suspense fallback={<TaskTableSkeleton />}>
+          <MyTasks />
+        </Suspense>
       </TasksTemplate>
     </AppShell>
   );

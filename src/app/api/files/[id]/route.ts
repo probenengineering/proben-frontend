@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { apiBase } from "@/lib/auth/api";
 import { getAccessToken } from "@/lib/auth/session";
 
-// Downloads a chat file (GET /api/files/<id>?name=<file name>) for the signed-in person.
+// Downloads a chat or home file (GET /api/files/<id>?name=<file name>) for the signed-in person.
 // The files service needs the access token, which only the server holds (HttpOnly cookie), so the
 // file is streamed through here. The files service rechecks access (conversation membership).
 
@@ -34,12 +34,20 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/files/[i
   const name = (request.nextUrl.searchParams.get("name") ?? "file")
     .replace(/[^\w .-]/g, "_")
     .slice(0, 150);
+  // ?inline=1 (file preview, Figma 60:14744): PDFs and images open in the page instead of
+  // downloading. Anything else still downloads.
+  const type = upstream.headers.get("content-type") ?? "application/octet-stream";
+  const inline =
+    request.nextUrl.searchParams.get("inline") === "1" &&
+    /^(application\/pdf|image\/(png|jpeg|gif|webp))/.test(type);
   return new Response(upstream.body, {
     headers: {
-      "content-type": upstream.headers.get("content-type") ?? "application/octet-stream",
-      "content-disposition": `attachment; filename="${name}"`,
+      "content-type": type,
+      "content-disposition": `${inline ? "inline" : "attachment"}; filename="${name}"`,
       "cache-control": "private, no-store",
       "x-content-type-options": "nosniff",
+      // Previewed files can't run scripts or reach the page.
+      ...(inline && { "content-security-policy": "sandbox" }),
     },
   });
 }

@@ -4,19 +4,411 @@ Running handover from the frontend to the backend team. Each section is one feat
 already has, what it currently fakes, and the API it needs. The frontend keeps this file
 up to date as screens are built; backend wires the endpoints in later.
 
-| #   | Feature                                           | Frontend status                                                                        | Backend status |
-| --- | ------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------- |
-| 1   | Time clock ("My time" card, Home `/`)             | Built, runs on `localStorage`                                                          | Not started    |
-| 2   | Home overview data (shift, schedule, open shifts) | Built; sample data when signed in, empty when not (the clock's shift is always sample) | Not started    |
-| 3   | My Tasks (calendar `/tasks`, list `/tasks/list`)  | Built; sample data                                                                     | Not started    |
-| 4   | My Homes (`/homes`, List / Section toggle)        | Built; sample data when signed in, empty when not                                      | Not started    |
-| 5   | Notifications (`/notifications`)                  | Built; sample data when signed in, empty when not; read state local only               | Not started    |
+| #   | Feature                                            | Frontend status                                                                    | Backend status                                    |
+| --- | -------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------- |
+| 1   | Time clock ("My time" card, Home `/`)              | Wired to `/api/commandcenter/attendance*` (2026-11-20)                             | Live                                              |
+| 2   | Home overview data (shift, schedule, open shifts)  | Wired to `GET /overview` + `GET /shifts/open` (2026-11-20)                         | Live                                              |
+| 3   | My Tasks (table `/tasks`, task drawer + form)      | Wired to `GET /tasks`, `/start`, `/draft`, `/submit`, files (2026-11-26)           | Live; form fields, uploads to confirm (R33–R38)   |
+| 4   | My Homes (`/homes` list + map, `/homes/[id]` tabs) | Wired to `GET /homes`, `/team`, `/schedule`, `/updates`, `/resources` (2026-11-26) | Live; team/schedule shapes undocumented (R39–R41) |
+| 5   | Notifications (`/notifications`)                   | Wired to `/api/notifications/inbox*` (2026-11-20)                                  | Live; `homes` category + destinations wired       |
 
 Conventions used below (proposals, change freely, then tell us):
 
 - Times on the wire are ISO 8601 UTC strings (`2026-11-14T08:00:00Z`). The UI converts to the user's local time.
 - The server clock is the source of truth. The client never sends its own timestamps for clock events.
 - Errors use the existing API error shape already used by auth/messaging (`src/lib/auth/api.ts`).
+
+## Backend to-do: summary (updated 2026-11-26)
+
+Everything still open, most important first. Details, Figma frames and what the UI does today are
+in the numbered items further down (§0.2 – §0.2.2).
+
+**P1: blocking real testing**
+
+- **R15** Demo accounts can't sign in (emailed code). A fixed non-production code for
+  `@demo.proben.test`, or a readable inbox. Unblocks **R1** (seed data: George has no homes,
+  shifts or tasks, so most screens could only be checked with sample data).
+- **R3** Attendance must stay `completed` (with `clockedOutAt`) for the rest of the day after
+  clock-out, for the "Shift complete" card.
+- **R2** Confirm `breakSeconds` on `GET /attendance` and the action responses.
+
+**P2: undocumented responses the UI reads by guessing field names** (please document in Swagger)
+
+- **R39a / R40a** `GET /homes/{id}/team`: names, roles, phone, on-shift status, "you" flag.
+- **R40b** `GET /homes/{id}/schedule`: shifts with staff, required staff, "is mine", coverage.
+- **R42** `GET /search` and `/search/recents` (global search, next to build).
+- **R36** `POST /api/files` (`UploadDto` is empty): `source` value for task uploads, response
+  shape; `GET /api/files/{id}` must return `name` and `size`.
+
+**P2: buttons or rows the UI hides or fakes until data exists**
+
+- Tasks: **R31** subtitle/progress, **R32** counts beyond 100, **R33** submit with no draft and
+  `completedAt`, **R34** assigner name, required action, instructions, HR reference files, **R35**
+  `date`/`phone` field types, hints, file limits, **R37 / R38** per-task wording, duration, "Next
+  step", **R28** completing tasks from the list, **R14** status naming.
+- Home dashboard: **R16** clock-out note + handover, **R17** manual clock-in request, **R18**
+  overtime approval, **R19** timesheet, **R20** event category colours, **R21** event completion
+  rule, **R22** confirm pick-up behaviour and errors (now called from the home's Schedule tab),
+  **R23** distance on location failure, **R24** open shifts near you, **R25** role on the modal.
+- Schedule: **R26** event/task detail fields, **R27** reschedule, **R29** "Add task", **R30**
+  "Assigned by".
+- Homes: **R39** home manager, usual shift, home status, full state name; **R40c** update type,
+  pinned, acknowledge-by date, "12 of 18 staff", author name/role; **R40d** home contacts (manager,
+  on-call nurse, emergency); **R40e** messaging user id to start a chat from a team card; **R41**
+  resource category, description, restricted flag, PDF page count.
+
+**P3: real-time and clean-up**
+
+- **R9** Notifications socket events. **R10** `counts` casing in `GET /tasks`.
+
+---
+
+## 0. Live API integration (2026-11-20)
+
+Swagger: `GET /api/commandcenter/docs` (JSON at `/api/commandcenter/docs-json`) (Command Center v0.1.0) and `GET /api/notifications/docs`.
+Frontend client: `src/lib/command-center/` (`api.ts`, `types.ts`, `time.ts`, `tasks.ts`,
+`attendance-actions.ts`), `src/lib/dashboard.ts`, `src/lib/dashboard-aside.ts`, `src/lib/homes.ts`,
+`src/lib/notifications.ts` + `notifications-actions.ts`. The proposals in §1–§5 below are kept for
+history; the live endpoints replace them.
+
+### 0.1 Endpoint mapping
+
+| UI                        | Endpoint(s)                                                                                                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| My time clock             | `GET /attendance` (via `/overview`), `POST /attendance/clock-in` (`shiftId`, GPS when the home `requireLocation`), `/break`, `/resume`, `/clock-out` |
+| Clock-in modal location   | Device GPS vs home `details.latitude/longitude` + `geofenceRadiusMeters` (client-side pre-check; the API still decides)                              |
+| Today's schedule (v2)     | `GET /overview` (today's clock shift) + `GET /shifts` (week start → +14 days) + `GET /events` (this week) for the week strip and agenda              |
+| Next shift note           | First `GET /shifts` item after now (within the two weeks above)                                                                                      |
+| Open shifts (Home)        | `GET /shifts/open?from=now&to=now+14d` (first 3 shown, `total` in the pill)                                                                          |
+| Needs Attention (Home)    | `GET /overview` → `needsAttention.items`                                                                                                             |
+| Homes line (Home aside)   | `GET /homes`                                                                                                                                         |
+| Task list                 | `GET /tasks?sort=due&limit=100`                                                                                                                      |
+| Task calendar (this week) | `GET /shifts` (green), `GET /events` (blue), `GET /tasks` due times (amber)                                                                          |
+| My Homes                  | `GET /homes?assignment=all`; open tasks counted from `/tasks` by `homeId`; next shift from `/shifts` (30 days)                                       |
+| Notifications             | `GET /api/notifications/inbox?limit=100`, `POST /inbox/{id}/read`, `POST /inbox/read-all` `{}`                                                       |
+| Home mute switch          | `PATCH /homes/{id}/notifications` `{ muted }` (profile panel; on = muted)                                                                            |
+| Sidebar Messages badge    | `GET /api/messaging/unread-count` → `messages` (hidden at 0, "99+" above 99)                                                                         |
+
+Timezone: "today" and calendar days use the first assigned home's `details.timezone`, falling back
+to `Africa/Lagos` when the user has no homes.
+
+### 0.2 Required from the backend
+
+A checklist for the backend team. **P1** blocks a screen from working correctly, **P2** means the UI
+shows a placeholder or a local-only control until it lands, and **P3** is clean-up or nice to have.
+Tick the box and add a changelog line when one ships; the frontend will wire it up and update §0.1.
+
+#### P1: blocking
+
+- [ ] **R1. Seed data for a test staff account.** The test staff login has no homes, shifts,
+      tasks, events or notifications, so clock-in, breaks, the calendar, task list and homes could
+      only be checked with synthetic data. Please seed one staff account with:
+  - 2 assigned homes (one `active`, one `upcoming`), each with `details.timezone`, address and coordinates, one with `requireLocation: true`
+  - a shift today covering the current time (to test clock-in / break / resume / clock-out), one tomorrow, and 2 open shifts this week
+  - 6+ tasks across every status (`upcoming`, `in_progress`, `submitted`, `completed`, `needs_attention`, one overdue) with `homeId` and `dueAt`, at least one with `priority: high`
+  - 2 calendar events this week
+  - 5+ notifications across categories, some read and some unread
+- [ ] **R2. Confirm `breakSeconds` on `GET /attendance` (and the action responses).** The UI
+      treats top-level `breakSeconds` as the **live total including a running break**, as of
+      `serverTime`, and counts up from there while `status = on_break`. If it excludes the running
+      break, the clock will under-count breaks and over-count worked time. Please confirm or change.
+  - **Still open (2026-11-20):** Swagger still only says it "returns … breakSeconds".
+
+- [x] **R3. A "shift done" rule for clock-in.** After clock-out, attendance is `completed` and the
+      UI goes back to "Not clocked in" with **Clock in** on the same shift (no Figma frame for a
+      finished shift). Please either reject a second clock-in on a completed shift with a clear
+      `409` code (e.g. `ALREADY_COMPLETED`) **or** tell us re-clock-in is allowed. Either way, keep
+      `completed` attendance for the shift in `GET /attendance` until the shift ends so the UI can
+      tell "done" from "not started".
+  - **Shipped (2026-11-20):** clock-in on a finished shift returns `409 ALREADY_COMPLETED`
+    (or `details.reason: SHIFT_COMPLETED`); the UI shows "You've already clocked out of this
+    shift." Still to confirm: does `GET /attendance` keep `status: completed` until the shift
+    ends? Swagger says "a completed session is available in history", which suggests it resets
+    to `not_clocked_in`, so the UI can't show a finished state without also reading
+    `/attendance/history`.
+
+#### P2: the UI shows a placeholder or a local-only control
+
+- [x] **R4. Home fields missing from `GET /homes` and `GET /homes/{id}`.** The list, cards and
+      profile panel show these; today residents shows "—" and contact rows are hidden.
+
+  ```jsonc
+  {
+    "residentsCount": 12, // number of residents at the home
+    "contact": { "email": "home@example.com", "phone": "+234 800 000 0000" }, // nullable fields
+    "notificationsMuted": false, // this staff member's mute for the home
+  }
+  ```
+
+  - **Shipped (2026-11-20):** every home has `residentsCount`, `contact {email, phone}` and
+    `notificationsMuted` (top level; `details` has copies). Wired to the list, cards and profile
+    panel.
+
+- [x] **R5. Mute a home's notifications.** `PATCH /homes/{id}/notifications` with
+      `{ "muted": true | false }`, returning the home (or `{ "muted": … }`). The switch in the
+      home profile panel is local-only until this exists. Please also say what muting covers
+      (all notifications from the home, or chat only; the Figma copy says "for this conversation").
+  - **Shipped (2026-11-20):** returns `{ muted, notificationsMuted, scope: "home_push" }`. It
+    mutes push for the home's records and home-tagged chats; inbox items still arrive. Wired to
+    the profile panel switch (on = muted, reverts with a toast on error). The Figma subtitle
+    "Mute notifications for this conversation" is unchanged; design may want "this home".
+
+- [x] **R6. Light unread-message count for the sidebar badge.** Something like
+      `GET /api/messaging/unread-count` → `{ "messages": 4, "conversations": 2 }`. The sidebar
+      shows on every page; `/overview` has `messaging.data.unread.messages` but is too heavy to call
+      everywhere. The badge (Figma shows "10") is hidden until this lands. A socket event when it
+      changes would be ideal.
+  - **Shipped (2026-11-20):** `GET /api/messaging/unread-count` → `{ messages, conversations }`.
+    The sidebar Messages item shows `messages`. It loads with each page; live refresh after
+    `message.new` / `receipts.updated` socket events isn't wired yet.
+
+- [x] **R7. A notification category for home assignments.** Figma has "New home assignment"
+      with a home icon, but the feed categories are `messages`, `announcements`, `schedule`,
+      `tasks`, `attendance`, `hr_documents`. Please add `homes` (preferred) or confirm these come
+      through as `announcements`.
+  - **Shipped (2026-11-20):** `homes` is a feed and read-all category. Shown with the
+    `home-linear` icon and a "View home" link (icon to be checked against Figma).
+
+- [x] **R8. Where a notification's "View …" link goes.** The UI links by category (schedule →
+      Home, tasks → task list, messages → inbox). `GET /inbox/{id}/destination` exists, but calling
+      it per row is too many requests. Please include `destination` (`type`, `id`, `homeId`,
+      `conversationId`) on each `GET /inbox` item so the link can open the exact task, shift or chat.
+  - **Shipped (2026-11-20):** each inbox item has a `destination` (`type`, `id`, `homeId`,
+    `conversationId`). The UI opens the chat when `conversationId` is set, the home profile for
+    `homes` items, and otherwise the category page. **Still needed:** the list of `type` values
+    (e.g. `task`, `shift`, `event`?) so links can open the exact task or shift.
+
+- [ ] **R9. Real-time notifications.** A socket event (like messaging's) such as
+      `notification.created` / `notification.updated` with the inbox item, so the list and any
+      badge update live. Today the page only refreshes on load.
+  - **Still open (2026-11-20):** messaging documents its socket events, but there's no
+    notifications socket event in Swagger yet.
+
+#### P3: clean-up and contract fixes
+
+- [ ] **R10. `GET /tasks` `counts` casing.** The response uses camelCase (`inProgress`,
+      `needsAttention`); Swagger says snake_case (`in_progress`, `needs_attention`), matching the
+      `status` values. Please align the response with Swagger (preferred) or update Swagger.
+  - **2026-11-20:** Swagger now lists the counts in snake_case as required. Not re-checked
+    live (the test account has no tasks); the UI doesn't read `counts`.
+
+- [x] **R11. `GET /shifts/open` requires `from`/`to`.** It returns 400 `VALIDATION_FAILED`
+      without them, but Swagger marks them optional. Either default them (e.g. now → +14 days) or
+      mark them required in Swagger. Please also document the 93-day range limit on every
+      `from`/`to` endpoint.
+- [x] **R12. Mark required response fields in Swagger.** Most response fields are optional in
+      the spec (`id?`, `name?`, `status?`…), so generated types are all optional. Please mark the
+      ones that are always present as `required`.
+- [x] **R13. Document error codes per endpoint.** Seen so far: `COMMAND_CENTER_CONFLICT`
+      ("You are not clocked in"), `COMMAND_CENTER_INVALID` (range), `NOT_FOUND` ("Assigned shift
+      not found"), `VALIDATION_FAILED`. Please list the `code` values each clock action can
+      return (e.g. outside the early window, location not verified, already on break) so the UI can
+      show the right message.
+  - **R11–R13 shipped (2026-11-20):** `from`/`to` are documented as required with the 93-day
+    limit; response fields are marked `required`; clock errors carry `details.reason`
+    (`NOT_CLOCKED_IN`, `ALREADY_CLOCKED_IN`, `SHIFT_COMPLETED`, `OUTSIDE_SHIFT_WINDOW`,
+    `LOCATION_REQUIRED`, `LOCATION_INACCURATE`, `LOCATION_OUTSIDE_HOME`,
+    `HOME_LOCATION_UNCONFIGURED`), and the UI shows a plain message for each.
+    Repeated break/resume returns 200.
+
+- [ ] **R14. Task status names for the UI.** The list has three states (To do / In progress /
+      Completed). The UI maps `submitted` → Completed and `needs_attention` → To do, and hides
+      tasks with no `dueAt`. Please confirm, or tell us how `submitted` and `needs_attention`
+      should look.
+
+### 0.2.1 Home dashboard v2 (Figma 60:9785 – 60:10864), 2026-11-26
+
+The Home "My time" card, clock-in / clock-out modals, schedule card and open-shift cards were
+redesigned. The UI is built against the current API; these are the gaps. API base is now
+`https://api.probenapp.com`.
+
+#### P1: blocking testing
+
+- [ ] **R15. A way to sign in as the `@demo.proben.test` accounts.** Every login needs an emailed
+      code, and those inboxes don't exist, so only George's account (no shifts, no homes) could be
+      tested. Please add a fixed demo code (e.g. `000000`) for `@demo.proben.test` in non-production,
+      or send their codes somewhere the team can read. This also unblocks **R1** (the demo staff
+      have shifts).
+- [ ] **R3 (still open) matters more now.** The v2 card has a "Shift complete" state (total worked,
+      clock-out time, "View timesheet"). It needs `GET /attendance` (and `/overview`) to keep
+      `status: completed` with `clockedOutAt` for the rest of the day. If it resets to
+      `not_clocked_in`, the UI can't show it.
+
+#### P2: buttons that show but do nothing yet
+
+- [ ] **R16. Clock-out note and handover.** The clock-out modal has "Shift note (optional)" and
+      "I've completed handover with the next caregiver". `POST /attendance/clock-out` takes no body,
+      and the API rejects unknown fields, so neither is sent. Proposed body:
+      `{ "note": "string, optional, max ~1000", "handoverCompleted": true }`. Please also say where
+      the note shows up (the next caregiver's Home? the home's updates?) and whether handover is
+      required to clock out.
+- [ ] **R17. Request manual clock-in.** "Clock-in failed" (location not verified) offers
+      "Request manual clock-in". Needs something like `POST /attendance/manual-requests`
+      `{ shiftId, reason?, latitude?, longitude? }` → pending request a manager approves, plus how
+      the card should look while it's pending.
+- [ ] **R18. Request overtime approval.** The Overtime state ("Overtime · +25 min", "Was due 4:00 PM")
+      offers "Request approval". `isOvertime` is informational only. Needs e.g.
+      `POST /attendance/{id}/overtime-requests` `{ reason? }` and a status on the attendance record
+      (`overtimeRequest: "pending" | "approved" | "rejected" | null`).
+- [ ] **R19. Timesheet.** "View timesheet" (Shift complete). `GET /attendance/history` exists; please
+      confirm each item has clock-in/out, `breakSeconds` and `workedSeconds`, and whether there's a
+      submit/approve step ("submitting them to your timesheet" in the clock-out modal). No timesheet
+      screen in Figma yet.
+- [ ] **R20. Event category (agenda bar colour).** Agenda cards have a coloured bar (green shift,
+      blue / purple / amber events in Figma). Events have no category, so every event is blue. Please
+      add `category` (or `color`) to events.
+- [ ] **R21. Event completion rule.** The agenda shows Completed / In progress / Upcoming /
+      Overdue. The UI uses `completedAt` for Completed and marks an event that has ended without it
+      as **Overdue**. Please confirm, or tell us if past events should count as done automatically
+      (Figma shows past meetings as "Completed"). The header counts "N of M done" the same way.
+- [ ] **R22. Open shift "Pick up".** The cards have a Pick up button. `POST /shifts/{id}/pickup`
+      is now called from a home's Schedule tab ("Pick up shift"); the dashboard card isn't wired yet
+      (no confirm flow in Figma). Please confirm it books the shift straight
+      away (vs. a request), and what errors it returns (already taken, overlaps a shift).
+
+#### P3: copy and accuracy
+
+- [ ] **R23. Distance on location failures.** Figma: "Location not verified — you're 1.2 mi from
+      Oakridge Group Home." The UI works this out from the device position and home coordinates when
+      it has both. Please add `details.distanceMeters` (and `details.radiusMeters`) to
+      `LOCATION_OUTSIDE_HOME` so the message always matches what the server measured.
+- [ ] **R24. "Open shifts near you this week".** The no-shift note in Figma says "3 open shifts near
+      you this week". The UI shows the `total` from `/shifts/open` for the next 14 days ("3 open shifts
+      available."). Please say whether "near you" should filter by distance/home, and the window.
+- [ ] **R25. Role on the clock-in modal.** The modal shows "Direct Support Professional · 8:00 AM –
+      4:00 PM". The UI uses the shift's `home.assignmentRole`; please make sure it's set on shifts (it's
+      hidden when empty).
+
+### 0.2.2 Today's Schedule (Figma 60:6134 – 60:6829), 2026-11-26
+
+`/schedule` (calendar, same data as My Tasks) and `/schedule/list` (list + detail panel). The
+list shows your events (`GET /events`, 30 days back for Overdue) and tasks with a `dueAt`
+(`GET /tasks`), grouped Overdue → today → Saturday.
+
+- [ ] **R26. Event/task fields the list and panel show.** Today these are hidden:
+  - **Type** (Meeting / Training / Webinar / 1:1 Session): same as R20. Events show a blue "Event",
+    tasks an amber "Task".
+  - **Subtitle** ("Product team · Google Meet"): the UI shows the home name. Please add `location`
+    (and a team/organiser label if there is one).
+  - **Location** row ("HR · Conference room B"): `location` on events.
+  - **Assigned by** ("Grace Okafor, HR"): events and tasks have `createdById` only; please add
+    `createdBy: { id, name, role }`.
+  - **Checklist** ("Checklist · 1 of 3"): `checklist: [{ id, label, done }]` plus an endpoint to tick an
+    item (e.g. `PATCH /events/{id}/checklist/{itemId}` `{ done }`).
+- [ ] **R27. Reschedule.** The panel has "Reschedule". There's no endpoint (staff can't edit events);
+      please say whether this should propose a new time (`POST /events/{id}/reschedule-requests`
+      `{ startsAt, endsAt, reason? }`) or is admin-only.
+- [ ] **R28. Completing tasks from the list.** Ticking a row / "Mark as complete" calls
+      `POST /events/{id}/complete` for events. Tasks need `start` → `draft` → `submit` with a `version`
+      and form answers, so they can't be ticked here; the checkbox is disabled for tasks. Please confirm,
+      or add a one-step complete for tasks with no form fields. There's also no "un-complete" for
+      events, so a tick can't be undone.
+
+- [ ] **R29. "Add task" from the calendar day panel (Figma 60:7203).** Staff can't create tasks or
+      events (`/admin/*` only). Please say whether staff may add personal tasks/reminders (e.g.
+      `POST /tasks` with `{ title, dueAt, homeId? }`), or whether the button should be hidden for staff.
+- [ ] **R30. "Assigned by" in the calendar quick peek (Figma 60:7539).** Same data as R26
+      (`createdBy.name`); the row is hidden until it exists.
+- [ ] **R31. My tasks subtitle (Figma 60:11012).** Each row shows a one-line subtitle ("Module 3 of 5
+      · 60% complete · last opened yesterday", "Draft saved Oct 24 · 1 required field remaining").
+      `GET /tasks` has only `description`, so the UI shows its first line. Please add a short
+      `summary` (or progress fields) if the subtitle should be live progress.
+- [ ] **R32. My tasks counts beyond 100 (Figma 60:11012).** The table loads `GET /tasks?limit=100`
+      and filters, searches and counts in the browser ("Status: All tasks · 21"). Please return
+      `total` per status (or confirm staff never have more than 100 open tasks) so counts stay right.
+- [ ] **R33. "Mark as complete" for simple tasks (Figma 60:11280).** For a task with no required
+      `fields`, the detail panel calls `POST /tasks/{id}/start` (if still upcoming) then
+      `POST /tasks/{id}/submit` with `{ version }`, and shows "… moved to Finished". Please confirm
+      submit is valid with no draft saved, and that a submitted task gets `completedAt` (or
+      `submittedAt`) for the Completed column's date and "On time" / "N days late".
+- [ ] **R34. Task drawer details (Figma 60:11701).** `GET /tasks` lacks, so the drawer hides:
+      "by Grace Okafor, HR" (assigner name + team, e.g. `createdBy: { name, team }`), "Required
+      action" (short text), "Instructions" (ordered list of steps), and reference attachments from
+      HR (e.g. "Approved CPR providers.pdf": file ids + names + sizes, separate from the staff
+      member's own `attachments`).
+- [ ] **R35. Task form fields (Figma 60:11826).** Field `type` has no `date` ("Expiry date" is a
+      text input for now). Please add `date` (and min/max, e.g. "Must be later than today"), a
+      per-field `hint`, and for `file` fields the accepted types and max size (the UI assumes PDF,
+      JPG or PNG up to 10 MB).
+- [ ] **R36. Task file uploads.** The UI posts `file`, `clientUploadId` and `source: "task"` to
+      `POST /api/files`, and stores the returned `id` as the field's answer plus in `attachments`
+      on the draft. The files service docs leave `UploadDto` empty: please confirm the `source`
+      value for task uploads, the response shape (`id`), and that `GET /api/files/{id}` returns
+      `name` and `size` for the drawer's file list.
+- [ ] **R37. After submitting (Figma 60:12071).** The success view shows "Next: HR verification"
+      and "HR will verify your certificate within 2 business days." Please return what happens
+      next (e.g. `reviewStep`, `reviewEta`) so it isn't hard-coded; the UI leaves it out for now.
+- [ ] **R38. More task drawer data (Figma 60:12169, 60:12401, 60:12512).** (a) "Duration: About
+      45 min · 3 modules" for courses (`estimatedMinutes`, `moduleCount`). (b) Per-task wording:
+      the form title ("Emergency contact"), the success title ("Emergency contact updated",
+      "Certification submitted") and message, and "Next: No further action". The UI uses generic
+      text ("Submit required information", "Task submitted") until these exist. (c) A `phone`
+      field type so the input can show the "+1 (_**) _**-****" pattern. (d) The drawer's "Draft
+      saved Oct 24, 4:12 PM" uses the task's `updatedAt`; please confirm a draft save updates it.
+
+- [ ] **R39. Home detail page (Figma 60:13792).** (a) `GET /homes/{id}/team` has no documented
+      response. The UI reads an array (or `items`, `members` or `staff`) of people with `id`, a name
+      (`name`, `displayName` or `firstName` + `lastName`) and a role (`role` or `jobTitle`). Please
+      document the shape and include the total for "View all · 8". (b) "Home manager" and "Usual
+      shift" ("8:00 AM – 4:00 PM") on Your assignment have no fields; they show "—". (c) "Home
+      status" (the home's own status, separate from your assignment) isn't returned; the UI shows
+      "Active". (d) "State" shows `details.region` as sent ("WI"); Figma shows "Wisconsin (WI)",
+      so a full state name would help.
+
+- [ ] **R40. Home team, schedule and updates tabs (Figma 60:13930, 60:14124, 60:14244).**
+      (a) Team: per person `phone`, whether they're on shift now with `shiftEndsAt`, and
+      `nextShiftStartsAt` (for "On shift · until 5:00 PM", "Starts 4:00 PM", "Off today · back
+      Mon"); a flag for the signed-in person. (b) Schedule: `GET /homes/{id}/schedule` has no
+      documented response; the UI reads `items` (or `shifts`) with `id`, `startsAt`, `endsAt`,
+      `title`, the staff on it (`staff` / `assignees` with names), `requiredStaff`, `isMine`.
+      Please document it, plus a day "coverage" count ("Coverage 7 of 8 staff"). (c) Updates: a
+      `type` (Announcement / Care note / Maintenance) for the tag, filter and "This week" counts;
+      `pinned`; an acknowledge-by date ("Please read and acknowledge by Mon, Oct 29"); how many
+      staff have acknowledged ("12 of 18 staff"); and the author's name and role (only
+      `createdById` today; the UI looks it up in the team list). (d) Home contacts: home
+      manager, on-call nurse and emergency instructions (only the home's phone and email exist).
+      (e) "Message" on a team card opens Messages; starting a chat with that person needs their
+      messaging user id.
+
+- [ ] **R41. Home resources (Figma 60:14528, 60:14744).** `GET /homes/{id}/resources` has
+      `title`, `fileId`, `createdAt`. The UI also needs a `category` (Emergency / Policies / Forms /
+      Care plans) for the tag and filter, a one-line `description`, and a `restricted` flag (with
+      who can open it) for "Restricted to the home manager and nurse". File name and size come from
+      `GET /api/files/{id}`; please confirm it returns `name` and `size`. The preview shows PDFs and
+      images inline (our server streams the file with `Content-Disposition: inline`); a page count
+      ("Page 1 of 4") would need `pageCount` from the files service.
+
+- [ ] **R42. Global search (Figma 60:14989 – 60:15643, not built yet).** `GET /search?q=` (q ≥ 2
+      characters) returns `tasks`, `events`, `homes`, `people`, `messages`, `conversations` and
+      `scope`, but Swagger documents it as a free-form object. Please document each section's item
+      fields. The design also has a **Files** scope and per-scope counts ("Messages 3", "Files 1");
+      files aren't in the response. `GET/POST/DELETE /search/recents` exist (recent searches with
+      "Clear"); please document the item shape and what `POST` expects (`SearchQuery`). The
+      "Quick actions" (Clock in, View tasks that need attention, Pick up an open shift, New message)
+      are built from existing endpoints.
+
+### 0.3 Earlier open questions now answered by the live API
+
+| Question                                    | Answer from the API                                                                  |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| §1.4.4 Overtime rule?                       | `isOvertime` on attendance (informational, not payroll).                             |
+| §1.4.6 Location / geofence?                 | Per home: `details.requireLocation` + `geofenceRadiusMeters`; UI sends GPS when set. |
+| §1.4.7 Which shift does clock-in attach to? | Clock-in takes `shiftId`; the UI sends the shift being shown.                        |
+| §1.4.3 Breaks after the allowance?          | Still unanswered: no `details.reason` for going over `breakAllowanceMinutes`.        |
+| §4.2 Map coordinates                        | `details.latitude` / `longitude` (and `onMap`) on homes.                             |
+| §5.3.2 Mark a notification unread?          | Yes: `POST /inbox/{id}/unread` (UI doesn't offer it yet; not in Figma).              |
+| §5.3.3 Paging                               | `limit` (max 100) + `nextCursor`; the UI loads the newest 100.                       |
+
+### 0.4 Still open for product / design (not backend)
+
+1. ~~Clocking out early~~: answered by the v2 design (Clock out is always shown while clocked in,
+   behind a confirmation modal).
+2. ~~Finished-shift state~~: v2 has "Shift complete" (still depends on R3).
+3. **Open-shift pick-up:** the v2 cards have a Pick up button but no confirm flow (R22).
+4. **Task detail page** (§3.3.4): `GET /tasks/{id}`, `POST /tasks/{id}/start`, `PATCH …/draft` and
+   `POST …/submit` exist; waiting on a design.
+5. **Map provider** (§4.3.4): Google Maps, Mapbox or OpenStreetMap, and whether a key is needed.
+6. **"Available" count on task days** (§3.3.1): the UI shows the number of tasks in the group.
 
 ---
 

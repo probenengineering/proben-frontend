@@ -1,51 +1,118 @@
 "use client";
 
-import { ProgressRing, StatusPill } from "@/components/atoms";
-import { TimeStat } from "@/components/molecules";
-import { useShiftClock } from "@/hooks/useShiftClock";
-import type { ScheduledShift } from "@/lib/shift-clock/types";
+import Link from "next/link";
 
-// "My time" block: progress ring with the running time and the clock action, then the shift
-// details. States (Figma): not clocked in, clocked in (51:9269), on break / break ended
-// (51:9961), work resumed (51:9441), no shift today (51:10133). Below sm the details sit
-// under the ring.
+import { Button, ProgressRing, StatePill } from "@/components/atoms";
+import { ClockStat } from "@/components/molecules";
+import { useShiftClock } from "@/hooks/useShiftClock";
+import type { ApiAttendance } from "@/lib/command-center/types";
+import type { ScheduledShift } from "@/lib/shift-clock/types";
+import type { ClockButtonView } from "@/lib/shift-clock/view";
+import { cn } from "@/lib/utils";
+
+import { ClockInDialog } from "./ClockInDialog";
+import { ClockOutDialog } from "./ClockOutDialog";
+
+// v2 "My time" card (Figma Time Clock 60:5349): 176px ring with the timer and caption, then the
+// title and status pill, a 2×2 grid (Clock-in, Clock-out, Shift, Break), the actions and a note.
+// States: 60:9785 not clocked in, 60:9901 clock-in failed, 60:10017 clocked in, 60:10133 on break,
+// 60:10249 back from break, plus overtime, shift complete and no shift from the component.
+// Below sm (agreed, not in Figma) the details sit under the ring.
 export interface ClockCardProps {
-  /** null = no shift today: zeroed, greyed, Clock in not clickable. */
+  /** null = no shift today. */
   shift: ScheduledShift | null;
+  /** The live clock from GET /attendance; null when signed out or it couldn't load. */
+  attendance: ApiAttendance | null;
+  /** Open shifts count, for the no-shift note. */
+  openShiftsAvailable: number;
+  /** "Fri, 26 Oct · 8:00 AM at Oakridge Group Home", for the Shift complete note. */
+  nextShift?: string;
 }
 
-export function ClockCard({ shift }: ClockCardProps) {
-  const clock = useShiftClock(shift);
-  const [left, right] = clock.stats;
+function ClockButton({ label, variant, onClick, href }: ClockButtonView) {
+  if (href) {
+    return (
+      <Button variant={variant} size="pill" render={<Link href={href} />} nativeButton={false}>
+        {label}
+      </Button>
+    );
+  }
+  return (
+    <Button variant={variant} size="pill" onClick={onClick} disabled={variant === "muted"}>
+      {label}
+    </Button>
+  );
+}
+
+export function ClockCard({ shift, attendance, openShiftsAvailable, nextShift }: ClockCardProps) {
+  const { view, confirmIn, confirmOut } = useShiftClock(
+    shift,
+    attendance,
+    openShiftsAvailable,
+    nextShift,
+  );
+  const [clockIn, clockOut, shiftStat, breakStat] = view.stats;
 
   return (
-    <section className="flex w-full flex-col gap-5 p-6 sm:flex-row sm:items-stretch">
-      <div className="shrink-0 self-start p-2">
-        <ProgressRing value={clock.progress} variant={clock.ringVariant}>
-          <span className="type-heading-sm font-medium text-black">{clock.timer}</span>
-          <StatusPill tone={clock.action.tone} onClick={clock.action.onClick}>
-            {clock.action.label}
-          </StatusPill>
-        </ProgressRing>
+    <section className="flex w-full flex-col gap-6 p-6 sm:flex-row sm:items-center sm:gap-8">
+      <ProgressRing
+        value={view.ring.value}
+        tone={view.ring.tone}
+        track={view.ring.track}
+        overtime={view.ring.overtime}
+        className="self-center"
+      >
+        <span className="type-ui-30 font-semibold text-slate-900">{view.timer}</span>
+        <span className="type-ui-12 text-slate-500">{view.caption}</span>
+      </ProgressRing>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <div className="flex items-center gap-2.5">
+          <h2 className="type-ui-18 font-semibold whitespace-nowrap text-slate-900">My time</h2>
+          <StatePill tone={view.status.tone}>{view.status.label}</StatePill>
+        </div>
+
+        <div className="flex w-full flex-col gap-3">
+          <div className="flex w-full gap-4">
+            <ClockStat {...clockIn} />
+            <ClockStat {...clockOut} />
+          </div>
+          <div className="flex w-full gap-4">
+            <ClockStat {...shiftStat} />
+            <ClockStat {...breakStat} />
+          </div>
+        </div>
+
+        <div className="flex w-full flex-col gap-2">
+          <div className="flex flex-wrap items-start gap-2.5">
+            {view.actions.map((action) => (
+              <ClockButton key={action.label} {...action} />
+            ))}
+          </div>
+          {view.note && (
+            <p
+              className={cn("type-ui-13", view.note.danger ? "text-danger-700" : "text-slate-500")}
+            >
+              {view.note.text}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="flex w-full flex-col justify-between gap-4 py-3 sm:w-61.75 sm:gap-0">
-        <div className="flex items-center gap-2.5">
-          <h2 className="type-paragraph-lg font-medium whitespace-nowrap text-black">My time</h2>
-          <StatusPill tone={clock.status.tone}>{clock.status.label}</StatusPill>
-        </div>
-        <TimeStat
-          layout="inline"
-          label="Clock-in time"
-          value={clock.clockInTime}
-          muted={!clock.active}
-          mutedLabel
+      {shift && (
+        <ClockInDialog
+          shift={shift}
+          open={confirmIn.open}
+          onOpenChange={confirmIn.setOpen}
+          onConfirm={(location) => void confirmIn.clockIn(location)}
         />
-        <div className="flex w-full items-start justify-between">
-          <TimeStat {...left} />
-          <TimeStat {...right} align="end" />
-        </div>
-      </div>
+      )}
+      <ClockOutDialog
+        open={confirmOut.open}
+        onOpenChange={confirmOut.setOpen}
+        summary={confirmOut.summary}
+        onConfirm={() => void confirmOut.clockOut()}
+      />
     </section>
   );
 }

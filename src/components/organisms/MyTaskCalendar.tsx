@@ -1,0 +1,58 @@
+import { Suspense } from "react";
+
+import { EmptyPanel } from "@/components/molecules";
+import { getAccessToken } from "@/lib/auth/session";
+import { type CalendarParams, parseCalendarParams } from "@/lib/calendar-view";
+import { getTimezone, requestTime } from "@/lib/command-center/api";
+import { getDayCalendar, getMonthCalendar } from "@/lib/command-center/calendar-views";
+import { weekShell } from "@/lib/command-center/tasks";
+import { dayKey, FALLBACK_TIMEZONE } from "@/lib/command-center/time";
+
+import { DayCalendar } from "./DayCalendar";
+import { MonthCalendar } from "./MonthCalendar";
+import { WeekCalendar } from "./WeekCalendar";
+import { WeekCalendarData } from "./WeekCalendarData";
+
+// Calendar body for /schedule and /tasks: Day, Week or Month for the date in the URL
+// (`?view=day&date=2026-10-25`, defaults to this week). Reads the session and the search params,
+// so render it inside <Suspense>. A load error shows above the (empty) calendar. The week view
+// streams: its loading skeleton (Figma 60:8230) shows the real week while events load.
+export interface MyTaskCalendarProps {
+  /** "/schedule" or "/tasks": where the toolbar and day links point. */
+  base: string;
+  searchParams: Promise<CalendarParams>;
+}
+
+export async function MyTaskCalendar({ base, searchParams }: MyTaskCalendarProps) {
+  const tz = (await getAccessToken()) ? await getTimezone() : FALLBACK_TIMEZONE;
+  const now = await requestTime();
+  const today = dayKey(now, tz);
+  const { view, date } = parseCalendarParams(await searchParams, today);
+
+  if (view === "day") {
+    const data = await getDayCalendar(date);
+    return (
+      <>
+        {data.error && <EmptyPanel message={data.error} />}
+        <DayCalendar base={base} data={data} />
+      </>
+    );
+  }
+  if (view === "month") {
+    const data = await getMonthCalendar(date);
+    return (
+      <>
+        {data.error && <EmptyPanel message={data.error} />}
+        <MonthCalendar base={base} date={date} data={data} />
+      </>
+    );
+  }
+  return (
+    <Suspense
+      key={date}
+      fallback={<WeekCalendar {...weekShell(date, now, tz)} base={base} date={date} loading />}
+    >
+      <WeekCalendarData base={base} date={date} />
+    </Suspense>
+  );
+}

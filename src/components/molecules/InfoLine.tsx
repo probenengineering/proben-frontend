@@ -1,9 +1,11 @@
+import type { ReactNode } from "react";
+
 import { Icon, type IconName } from "@/components/atoms";
 
 // 16px icon + Inter 14px grey-700 text, with an optional "+2 more" in Inter Tight.
 export interface InfoLineProps {
   icon: IconName;
-  text: string;
+  text: ReactNode;
   extra?: string;
 }
 

@@ -6,5 +6,5 @@ export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "./inpu
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export { Checkbox } from "./checkbox";
 export { Popover, PopoverContent, PopoverTrigger } from "./popover";
-export { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
+export { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
 export { Dialog, DialogContent, DialogDescription, DialogTitle } from "./dialog";

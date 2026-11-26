@@ -4,12 +4,13 @@ import { Suspense } from "react";
 import {
   DashboardAside,
   DashboardHeader,
+  HomeAside,
   DashboardTabs,
   RecentChatsDock,
 } from "@/components/organisms";
 import { HomeOverview } from "@/components/organisms/HomeOverview";
 import { AppShell, DashboardTemplate } from "@/components/templates";
-import { DASHBOARD_TABS, QUICK_ACTIONS, TASKS } from "@/lib/sample-dashboard";
+import { DASHBOARD_TABS, QUICK_ACTIONS } from "@/lib/sample-dashboard";
 
 export const metadata: Metadata = {
   title: "Home | Proben",
@@ -19,9 +20,13 @@ export default function HomePage() {
   return (
     <AppShell>
       <DashboardTemplate
-        header={<DashboardHeader greeting="Good morning, Alision" />}
+        header={<DashboardHeader />}
         tabs={<DashboardTabs tabs={DASHBOARD_TABS} />}
-        aside={<DashboardAside actions={QUICK_ACTIONS} tasks={TASKS} />}
+        aside={
+          <Suspense fallback={<DashboardAside actions={QUICK_ACTIONS} homes={[]} tasks={[]} />}>
+            <HomeAside actions={QUICK_ACTIONS} />
+          </Suspense>
+        }
         dock={<RecentChatsDock />}
       >
         <Suspense>

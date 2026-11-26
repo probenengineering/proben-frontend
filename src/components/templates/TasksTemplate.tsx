@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
 // the calendar frame (dense). The list view renders its own toolbar row (TaskListBoard).
 export interface TasksTemplateProps {
   header: ReactNode;
-  tabs: ReactNode;
-  heading: ReactNode;
+  /** Omitted on detail pages, which show a breadcrumb instead (My homes 60:13792). */
+  tabs?: ReactNode;
+  /** Omit when the content draws its own heading row (My tasks table). */
+  heading?: ReactNode;
   /** Right side of the heading row (calendar view). */
   actions?: ReactNode;
   children: ReactNode;
@@ -34,10 +36,12 @@ export function TasksTemplate({
         )}
       >
         {tabs}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-5">
-          {heading}
-          {actions}
-        </div>
+        {(heading || actions) && (
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5">
+            {heading}
+            {actions}
+          </div>
+        )}
         <div className="flex w-full flex-col">{children}</div>
       </div>
     </>

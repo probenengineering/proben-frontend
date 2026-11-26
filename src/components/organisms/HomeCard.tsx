@@ -20,7 +20,7 @@ export function HomeCard({ home, href }: HomeCardProps) {
         <p className="truncate type-paragraph-sm text-grey-700">{home.address}</p>
       </div>
       <div className="flex w-full items-center gap-5">
-        <HomeStat icon="profile-2user" value={home.residents} label="Residents" />
+        <HomeStat icon="profile-2user" value={home.residents ?? "—"} label="Residents" />
         <HomeStat icon="profile-2user" value={home.openTasks} label="Open tasks" />
         <HomeStat
           icon="profile-2user"
