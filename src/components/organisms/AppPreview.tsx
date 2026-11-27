@@ -22,7 +22,11 @@ export function AppPreview() {
           <div className="flex flex-col gap-1">
             <SidebarMenuItem icon="home" label="Home" active />
             <SidebarMenuItem icon="messages" label="Messages" badge="10" />
-            <SidebarMenuItem icon="grid" label="Staffer" trailing={<Icon name="chevron-down" />} />
+            <SidebarMenuItem
+              icon="grid"
+              label="Staff management"
+              trailing={<Icon name="chevron-down" />}
+            />
             <SidebarMenuItem icon="notification" label="Notifications" />
             <SidebarMenuItem icon="user" label="Profile" />
           </div>

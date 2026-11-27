@@ -1,7 +1,9 @@
 import { connection } from "next/server";
 
 import { SidebarMenuItem } from "@/components/molecules";
+import { appAccess } from "@/lib/auth/access";
 import { getAccessToken } from "@/lib/auth/session";
+import { getCurrentUser } from "@/lib/auth/user";
 import { messaging } from "@/lib/messaging/api";
 
 // The sidebar's Messages item with the unread-message count pill
@@ -15,6 +17,8 @@ export async function MessagesMenuItem({ collapsed }: MessagesMenuItemProps) {
   // Request-time data: without this, the phone menu's copy of the sidebar (rendered inside each
   // page's header) is treated as prerenderable and the API call trips Next's Date.now() check.
   await connection();
+  // Hidden for anyone who can't use messaging (the /messages routes send them Home too).
+  if (!appAccess((await getCurrentUser())?.permissions).messages) return null;
   const count = (await getAccessToken())
     ? await messaging<{ messages: number }>("/unread-count")
         .then((r) => r.messages)

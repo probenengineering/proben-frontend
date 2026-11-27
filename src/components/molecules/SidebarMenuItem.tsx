@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, Suspense } from "react";
 
 import { Icon, type IconName, LinkPendingTint } from "@/components/atoms";
 import { cn } from "@/lib/utils";
@@ -34,20 +34,35 @@ function matches(pathname: string, path: string) {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-export function SidebarMenuItem({
+// Reading the URL suspends on routes with an unknown dynamic param (e.g. /staff/[id]) under Cache
+// Components, so the URL-aware item sits in <Suspense> with the same item, not highlighted, as
+// the fallback (Next docs: use-pathname "Cache Components"). Client navigations never show it.
+export function SidebarMenuItem(props: SidebarMenuItemProps) {
+  if (!props.activePaths) return <ItemView {...props} isActive={!!props.active} />;
+  return (
+    <Suspense fallback={<ItemView {...props} isActive={!!props.active} />}>
+      <RouteAwareItem {...props} />
+    </Suspense>
+  );
+}
+
+function RouteAwareItem(props: SidebarMenuItemProps) {
+  const pathname = usePathname();
+  const isActive =
+    !!props.active || (props.activePaths?.some((path) => matches(pathname, path)) ?? false);
+  return <ItemView {...props} isActive={isActive} />;
+}
+
+function ItemView({
   icon,
   label,
-  active,
   activeTone = "grey",
   badge,
   trailing,
   collapsed,
   href,
-  activePaths,
-}: SidebarMenuItemProps) {
-  const pathname = usePathname();
-  const isActive = active || (activePaths?.some((path) => matches(pathname, path)) ?? false);
-
+  isActive,
+}: SidebarMenuItemProps & { isActive: boolean }) {
   const className = cn(
     // Figma radius 4px; no radius token yet.
     // Hover: the white-500 fill of the grey active state (no Figma hover frame).

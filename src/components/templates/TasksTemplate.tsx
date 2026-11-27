@@ -16,6 +16,8 @@ export interface TasksTemplateProps {
   actions?: ReactNode;
   children: ReactNode;
   dense?: boolean;
+  /** Content fills the remaining height (All staff empty state, Figma 103:18493). */
+  fill?: boolean;
 }
 
 export function TasksTemplate({
@@ -25,6 +27,7 @@ export function TasksTemplate({
   actions,
   children,
   dense,
+  fill,
 }: TasksTemplateProps) {
   return (
     <>
@@ -42,7 +45,7 @@ export function TasksTemplate({
             {actions}
           </div>
         )}
-        <div className="flex w-full flex-col">{children}</div>
+        <div className={cn("flex w-full flex-col", fill && "flex-1")}>{children}</div>
       </div>
     </>
   );

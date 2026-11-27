@@ -156,6 +156,18 @@
   --color-skeleton-grid: #eef0f3; /* week calendar loading blocks (Figma 60:8230) */
   --color-green-tint: #f4faef; /* selected calendar day: header + column (Figma 60:7203) */
   --color-green-icon: #5e8f2b; /* calendar icons in empty states (60:10644, 60:7021) */
+  /* Staff avatar tints (All staff, Figma 103:18355): background / initials. */
+  --color-staff-purple-50: #f4ebff;
+  --color-staff-purple: #7f56d9;
+  --color-staff-green-50: #dcfae6;
+  --color-staff-green: #079455;
+  --color-staff-amber-50: #fef0c7;
+  --color-staff-pink-50: #fdf2fa;
+  --color-staff-pink: #dd2590;
+  --color-staff-grey: #475467;
+  --color-staff-teal-50: #ccfbef; /* teal initials tint (Home assignments 103:20986) */
+  --color-staff-teal: #0e9384;
+  --color-staff-blue: #1570ef; /* blue initials on info-50 (staff task drawer 103:17775) */
 
   /* Modal shadow (Figma 60:10838): 0 20 48 -8 #0F1729 @ 20% */
   --shadow-modal: 0 20px 48px -8px rgb(15 23 41 / 0.2);
@@ -168,6 +180,10 @@
   --shadow-popover: 0 12px 32px -6px rgb(15 23 41 / 0.14);
   --shadow-map-overlay: 0 8px 24px -4px rgb(15 23 41 / 0.14); /* map chip, zoom, cards (Figma 60:13774) */
   --shadow-menu: 0 12px 32px -6px rgb(15 23 41 / 0.12); /* filter dropdown menu (Figma 60:12809) */
+  --shadow-field-focus: 0 0 0 4px rgb(132 196 65 / 0.18); /* focused staff form field (Figma 103:18686) */
+  --shadow-toggle-knob: 0 1px 2px rgb(16 24 40 / 0.1); /* Toggle knob (Figma 103:18711) */
+  --shadow-side-drawer: 0 12px 40px 0 rgb(15 23 41 / 0.18); /* Assign homes drawer (Figma 103:19806) */
+  --shadow-row-menu: 0 12px 32px -4px rgb(15 23 41 / 0.14); /* staff row ⋯ menu (Figma 103:18467) */
   /* Selected calendar event (Figma 60:7667): 0 6 16 -2 #6E29D9 @ 25% */
   --shadow-event-selected: 0 6px 16px -2px rgb(110 41 217 / 0.25);
   /* Day view empty card (Figma 60:8851): 0 8 24 -6 #0F1729 @ 8% */
@@ -456,6 +472,21 @@
   font-size: 0.9375rem; /* 15px, clock stat value */
   line-height: 1.375rem; /* 22px */
 }
+@utility type-ui-15-21 {
+  font-family: var(--font-family-inter);
+  font-size: 0.9375rem; /* 15px, role card name (Figma 103:18142) */
+  line-height: 1.3125rem; /* 21px */
+}
+@utility type-ui-15-18 {
+  font-family: var(--font-family-inter);
+  font-size: 0.9375rem; /* 15px, "Available roles" (Figma 103:19456) */
+  line-height: 1.125rem; /* 18px */
+}
+@utility type-ui-15-16 {
+  font-family: var(--font-family-inter);
+  font-size: 0.9375rem; /* 15px, permission group titles (Figma 103:19466) */
+  line-height: 1rem; /* 16px */
+}
 @utility type-ui-15-20 {
   font-family: var(--font-family-inter);
   font-size: 0.9375rem; /* 15px, map cluster count (Figma 60:13424) */
@@ -480,6 +511,31 @@
   font-family: var(--font-family-inter);
   font-size: 0.75rem; /* 12px */
   line-height: 1.125rem; /* 18px */
+}
+@utility type-ui-12-17 {
+  font-family: var(--font-family-inter);
+  font-size: 0.75rem; /* 12px, staff table labels and emails (Figma 103:17743) */
+  line-height: 1.0625rem; /* 17px */
+}
+@utility type-ui-16-23 {
+  font-family: var(--font-family-inter);
+  font-size: 1rem; /* 16px, form section titles (Figma 103:18673) */
+  line-height: 1.4375rem; /* 23px */
+}
+@utility type-ui-18-26 {
+  font-family: var(--font-family-inter);
+  font-size: 1.125rem; /* 18px, "No staff members yet" (Figma 103:18497) */
+  line-height: 1.625rem; /* 26px */
+}
+@utility type-ui-22-31 {
+  font-family: var(--font-family-inter);
+  font-size: 1.375rem; /* 22px, staff profile name (Figma 103:18942) */
+  line-height: 1.9375rem; /* 31px */
+}
+@utility type-ui-22-28 {
+  font-family: var(--font-family-inter);
+  font-size: 1.375rem; /* 22px, "All staff" page title (Figma 103:18360) */
+  line-height: 1.75rem; /* 28px */
 }
 @utility type-ui-12-16 {
   font-family: var(--font-family-inter);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { Icon } from "@/components/atoms";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
@@ -13,8 +14,20 @@ export interface NotificationBellProps {
   className?: string;
 }
 
-export function NotificationBell({ className }: NotificationBellProps) {
-  const count = useUnreadMessages();
+// The count hook reads the URL, so it sits in <Suspense> (see SidebarMenuItem); fallback = no count.
+export function NotificationBell(props: NotificationBellProps) {
+  return (
+    <Suspense fallback={<BellView {...props} count={0} />}>
+      <LiveBell {...props} />
+    </Suspense>
+  );
+}
+
+function LiveBell(props: NotificationBellProps) {
+  return <BellView {...props} count={useUnreadMessages()} />;
+}
+
+function BellView({ className, count }: NotificationBellProps & { count: number }) {
   const label = count > 99 ? "99+" : String(count);
 
   return (

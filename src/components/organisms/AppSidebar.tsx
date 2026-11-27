@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 import { CurrentUserCard } from "./CurrentUserCard";
 import { MessagesMenuItem } from "./MessagesMenuItem";
+import { StaffNavSection } from "./StaffNavSection";
 
 // Figma component "Sidebar": 272px with labels, or 82px icons-only when collapsed (chat open).
 // The item for the current route is highlighted peach (Figma: Home on the Tasks screens): Home
@@ -68,12 +69,10 @@ export function AppSidebar({ collapsed }: AppSidebarProps) {
               >
                 <MessagesMenuItem {...item} />
               </Suspense>
-              <SidebarMenuItem
-                icon="grid"
-                label="Staffer"
-                trailing={<Icon name="chevron-down" />}
-                {...item}
-              />
+              {/* Only for people with Staff management access (no placeholder: most staff don't). */}
+              <Suspense fallback={null}>
+                <StaffNavSection {...item} />
+              </Suspense>
               <SidebarMenuItem
                 icon="notification"
                 label="Notifications"

@@ -6,6 +6,7 @@ import { getAccessToken } from "@/lib/auth/session";
 // the form is forwarded from here. A route handler, not a server action: actions cap bodies at 1 MB.
 
 const MAX_BYTES = 10 * 1024 * 1024;
+const PURPOSES = new Set(["staff_avatar", "message_attachment"]);
 
 export async function POST(request: Request) {
   const accessToken = await getAccessToken();
@@ -25,6 +26,10 @@ export async function POST(request: Request) {
   body.set("clientUploadId", String(form.get("clientUploadId") ?? crypto.randomUUID()));
   // `source` is the physical source, not the feature: task and HR uploads use "document".
   body.set("source", "document");
+  // What the file is for: a staff photo (JPG/PNG up to 5 MB) or a task reference (Assign task).
+  // Left out, the files service applies its default (task answer uploads).
+  const purpose = String(form.get("purpose") ?? "");
+  if (PURPOSES.has(purpose)) body.set("purpose", purpose);
 
   let upstream: Response;
   try {

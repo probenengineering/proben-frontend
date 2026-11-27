@@ -154,3 +154,53 @@ export { SEARCH_SCOPES, SearchScopeTabs, type SearchScopeTabsProps } from "./Sea
 export { SearchResultRow, type SearchResultRowProps } from "./SearchResultRow";
 export { SearchSectionHeader, type SearchSectionHeaderProps } from "./SearchSectionHeader";
 export { SearchFooter, type SearchFooterProps } from "./SearchFooter";
+export { SidebarSubMenuItem, type SidebarSubMenuItemProps } from "./SidebarSubMenuItem";
+export { StaffStats, type StaffStatsProps } from "./StaffStats";
+export { StaffTableHeader, STAFF_TABLE_COLUMNS } from "./StaffTableHeader";
+export { StaffRow, type StaffRowProps } from "./StaffRow";
+export { StaffRowSkeleton, type StaffRowSkeletonProps } from "./StaffRowSkeleton";
+export { StaffRowMenu, type StaffRowAction, type StaffRowMenuProps } from "./StaffRowMenu";
+export { TablePagination, type TablePaginationProps } from "./TablePagination";
+export { FormFieldShell, fieldBox, type FormFieldShellProps } from "./FormFieldShell";
+export { FormTextField, type FormTextFieldProps } from "./FormTextField";
+export { FormSelectField, type FormSelectFieldProps } from "./FormSelectField";
+export { FormSection, type FormSectionProps } from "./FormSection";
+export { PhotoUpload, type PhotoUploadProps } from "./PhotoUpload";
+export { NoticeBanner, type NoticeBannerProps } from "./NoticeBanner";
+export { InfoNote, type InfoNoteProps } from "./InfoNote";
+export { InvitationToggle, type InvitationToggleProps } from "./InvitationToggle";
+export { StickyActionBar, type StickyActionBarProps } from "./StickyActionBar";
+export { StaffSummaryRow, type StaffSummaryRowProps } from "./StaffSummaryRow";
+export { ProfileCard, type ProfileCardProps } from "./ProfileCard";
+export { TaskCountStrip, type TaskCountStripProps } from "./TaskCountStrip";
+export { ProfileTaskRow, type ProfileTaskRowProps } from "./ProfileTaskRow";
+export { AssignedHomeRow, type AssignedHomeRowProps } from "./AssignedHomeRow";
+export { ActivityItem, type ActivityItemProps } from "./ActivityItem";
+export { StaffProfileHeader, type StaffProfileHeaderProps } from "./StaffProfileHeader";
+export { StaffChip, type StaffChipProps } from "./StaffChip";
+export { RoleOption, type RoleOptionProps } from "./RoleOption";
+export { PermissionRow, type PermissionRowProps } from "./PermissionRow";
+export { SelectableHomeRow, type SelectableHomeRowProps } from "./SelectableHomeRow";
+export { ChangeSummaryRow, type ChangeSummaryRowProps } from "./ChangeSummaryRow";
+export { InlineStats, type InlineStatsProps } from "./InlineStats";
+export { RowActionMenu, type RowAction, type RowActionMenuProps } from "./RowActionMenu";
+export { FormTextAreaField, type FormTextAreaFieldProps } from "./FormTextAreaField";
+export { FileUploadField, type FileUploadFieldProps } from "./FileUploadField";
+export { ProgressTimeline, type ProgressTimelineProps } from "./ProgressTimeline";
+export { StaffTaskTableHeader, STAFF_TASK_COLUMNS } from "./StaffTaskTableHeader";
+export {
+  StaffTaskRow,
+  TASK_STATE_TONES,
+  type StaffTaskAction,
+  type StaffTaskRowProps,
+} from "./StaffTaskRow";
+export { RoleSummaryCard, type RoleSummaryCardProps } from "./RoleSummaryCard";
+export { PermissionCell, type PermissionCellProps } from "./PermissionCell";
+export { AvatarStack, type AvatarStackProps } from "./AvatarStack";
+export { HomeAssignmentTableHeader, HOME_ASSIGNMENT_COLUMNS } from "./HomeAssignmentTableHeader";
+export { HomeAssignmentRow, type HomeAssignmentRowProps } from "./HomeAssignmentRow";
+export {
+  StaffPickerField,
+  type StaffPickerFieldProps,
+  type StaffPickerOption,
+} from "./StaffPickerField";

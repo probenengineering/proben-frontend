@@ -6,3 +6,4 @@ export { DashboardTemplate, type DashboardTemplateProps } from "./DashboardTempl
 export { TasksTemplate, type TasksTemplateProps } from "./TasksTemplate";
 export { ChatTemplate, type ChatTemplateProps } from "./ChatTemplate";
 export { FlatPageTemplate, type FlatPageTemplateProps } from "./FlatPageTemplate";
+export { FormPageTemplate, type FormPageTemplateProps } from "./FormPageTemplate";

@@ -28,3 +28,8 @@ export { InitialsAvatar, type InitialsAvatarProps } from "./InitialsAvatar";
 export { MapCredit } from "./MapCredit";
 export { KeyHint, type KeyHintProps } from "./KeyHint";
 export { LinkPendingTint, type LinkPendingTintProps } from "./LinkPendingTint";
+export { RoleTag, type RoleTagProps } from "./RoleTag";
+export { Toggle, type ToggleProps } from "./Toggle";
+export { RadioDot, type RadioDotProps } from "./RadioDot";
+export { ScopeBadge, type ScopeBadgeProps } from "./ScopeBadge";
+export { AvatarPhoto, type AvatarPhotoProps } from "./AvatarPhoto";

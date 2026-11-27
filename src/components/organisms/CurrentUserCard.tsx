@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import { UserCard } from "@/components/molecules";
 import { getCurrentUser } from "@/lib/auth/user";
 
@@ -8,6 +10,9 @@ export interface CurrentUserCardProps {
 }
 
 export async function CurrentUserCard({ compact }: CurrentUserCardProps) {
+  // Request-time data (as in MessagesMenuItem): without this the layout's sidebar is treated as
+  // prerenderable and the session read trips Next's Date.now() check.
+  await connection();
   const user = await getCurrentUser();
   if (!user) return <UserCard name="Not signed in" signedIn={false} compact={compact} />;
   return (

@@ -15,7 +15,8 @@ export function DetailTabs({ tabs, selected }: DetailTabsProps) {
   return (
     <div
       role="tablist"
-      className="flex [scrollbar-width:none] gap-6 overflow-x-auto overflow-y-hidden border-b border-slate-200 [&::-webkit-scrollbar]:hidden"
+      // Phones: the row scrolls sideways; the faded right edge shows there are more tabs.
+      className="flex [scrollbar-width:none] gap-6 overflow-x-auto overflow-y-hidden border-b border-slate-200 max-sm:[mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)] max-sm:pr-6 [&::-webkit-scrollbar]:hidden"
     >
       {tabs.map((t) => {
         const on = t.id === selected;

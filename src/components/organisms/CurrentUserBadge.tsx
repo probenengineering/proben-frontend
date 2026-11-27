@@ -1,4 +1,3 @@
-
 import { Avatar, Tag } from "@/components/atoms";
 import { getCurrentUser } from "@/lib/auth/user";
 
